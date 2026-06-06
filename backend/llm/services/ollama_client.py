@@ -46,7 +46,9 @@ class OllamaLLMClient(LLMClient):
     def __init__(self) -> None:
         self.host = settings.OLLAMA_HOST.rstrip("/")
         self.model = settings.OLLAMA_MODEL
-        self.timeout = 120  # secondes
+        # Configurable via OLLAMA_TIMEOUT (.env). Défaut 600 s : une génération
+        # 8B sur CPU peut dépasser largement 120 s (cf. perturbation J2 latence).
+        self.timeout = settings.OLLAMA_TIMEOUT
 
     def generate_quiz(self, source_text: str, title: str) -> list[dict]:
         prompt = self._build_prompt(source_text, title)

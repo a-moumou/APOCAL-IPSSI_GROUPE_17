@@ -177,3 +177,7 @@ CORS_ALLOW_CREDENTIALS = True
 OLLAMA_HOST  = config("OLLAMA_HOST",  default="http://ollama:11434")
 OLLAMA_MODEL = config("OLLAMA_MODEL", default="llama3.1:8b")
 LLM_BACKEND  = config("LLM_BACKEND",  default="ollama")  # "ollama" | "mock"
+# Délai max (secondes) d'attente d'une génération Ollama. Sur CPU, un modèle 8B
+# met facilement 2 à 5 minutes pour 10 QCM : 120 s était trop court (timeout ->
+# 502). Défaut généreux, ajustable via .env (OLLAMA_TIMEOUT).
+OLLAMA_TIMEOUT = config("OLLAMA_TIMEOUT", default=600, cast=int)
