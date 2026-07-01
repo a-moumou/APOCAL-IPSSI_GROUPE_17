@@ -80,8 +80,7 @@ def parse_and_validate_quiz(raw: str) -> list[dict]:
             MAX_RAW_OUTPUT_CHARS,
         )
         raise LLMError(
-            f"Sortie LLM anormale : {len(raw)} caractères"
-            f"(max {MAX_RAW_OUTPUT_CHARS})."
+            f"Sortie LLM anormale : {len(raw)} caractères" f"(max {MAX_RAW_OUTPUT_CHARS})."
         )
 
     # 1. Tente le parse direct (cas idéal : le LLM renvoie du JSON pur)
