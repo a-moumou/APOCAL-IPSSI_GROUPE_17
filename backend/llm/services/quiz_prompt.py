@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # modèle (Llama 8B ~8k tokens). Les gros modèles API tolèrent bien plus, mais
 # on garde une limite commune pour des coûts/latences maîtrisés.
 MAX_SOURCE_CHARS = 8000
+MAX_RAW_OUTPUT_CHARS = 50_000
 
 SYSTEM_PROMPT = """Tu es un assistant pédagogique francophone spécialisé en
 génération de QCM. À partir du cours fourni, tu génères exactement 10 questions
@@ -71,6 +72,17 @@ def parse_and_validate_quiz(raw: str) -> list[dict]:
     """
     if not raw or not raw.strip():
         raise LLMError("Le LLM a renvoyé une réponse vide.")
+
+    if len(raw) > MAX_RAW_OUTPUT_CHARS:
+        logger.warning(
+            "Sortie LLM anormale : %d caractères (max %d)",
+            len(raw),
+            MAX_RAW_OUTPUT_CHARS,
+        )
+        raise LLMError(
+            f"Sortie LLM anormale : {len(raw)} caractères"
+            f"(max {MAX_RAW_OUTPUT_CHARS})."
+        )
 
     # 1. Tente le parse direct (cas idéal : le LLM renvoie du JSON pur)
     data = None
