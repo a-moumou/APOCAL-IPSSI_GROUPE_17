@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getQuiz, submitAnswers, type Quiz, type AnswerResult } from '@/api/quizzes';
+import { CheckCircle, XCircle, Send, History, BookOpen, Loader2 } from 'lucide-react';
 
 export default function QuizPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,13 +17,33 @@ export default function QuizPage() {
   useEffect(() => {
     setLoading(true);
     getQuiz(quizId)
-      .then(setQuiz)
+      .then((q) => {
+        setQuiz(q);
+        const saved: Record<number, number> = {};
+        q.questions.forEach((question) => {
+          if (question.selected_index !== null) {
+            saved[question.index] = question.selected_index;
+          }
+        });
+        if (Object.keys(saved).length === 10 && q.score !== null) {
+          setAnswers(saved);
+          const details = q.questions.map((question) => ({
+            index: question.index,
+            selected_index: question.selected_index!,
+            correct_index: question.correct_index,
+            correct: question.selected_index === question.correct_index,
+          }));
+          setResult({ score: q.score, total: 10, details });
+        } else if (Object.keys(saved).length > 0) {
+          setAnswers(saved);
+        }
+      })
       .catch(() => setError('Impossible de charger ce quiz.'))
       .finally(() => setLoading(false));
   }, [quizId]);
 
   const handleSelect = (questionIndex: number, optionIndex: number) => {
-    if (result) return; // déjà soumis
+    if (result) return;
     setAnswers((prev) => ({ ...prev, [questionIndex]: optionIndex }));
   };
 
@@ -44,48 +65,78 @@ export default function QuizPage() {
     }
   };
 
-  if (loading) return <p className="text-slate-500">Chargement du quiz…</p>;
-  if (error) return <p className="text-rose-600">{error}</p>;
+  if (loading) return (
+    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 py-10">
+      <Loader2 size={16} className="animate-spin" /> Chargement du quiz...
+    </div>
+  );
+  if (error) return <p className="text-red-600 dark:text-red-400">{error}</p>;
   if (!quiz) return null;
 
   const allAnswered = Object.keys(answers).length === 10;
+  const answeredCount = Object.keys(answers).length;
+
+  const scoreVariant =
+    result && result.score >= 7
+      ? { bg: 'bg-emerald-50 dark:bg-emerald-950 border-emerald-200 dark:border-emerald-800', badge: 'bg-emerald-600', text: 'text-emerald-700 dark:text-emerald-400' }
+      : result && result.score >= 4
+        ? { bg: 'bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800', badge: 'bg-amber-500', text: 'text-amber-700 dark:text-amber-400' }
+        : { bg: 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800', badge: 'bg-red-600', text: 'text-red-700 dark:text-red-400' };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-5">
       {/* En-tête */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">{quiz.title}</h1>
-        <p className="text-sm text-slate-500">
-          Quiz #{quiz.id} · {quiz.questions.length} questions
-        </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{quiz.title}</h1>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 font-mono">
+            Quiz #{quiz.id} — {quiz.questions.length} questions
+          </p>
+        </div>
+        {!result && (
+          <div className="text-right shrink-0">
+            <div className="text-xs text-slate-400 dark:text-slate-500 mb-1">{answeredCount} / 10 répondues</div>
+            <div className="w-32 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                style={{ width: `${(answeredCount / 10) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Résultat */}
       {result && (
-        <div
-          className={`card border-l-4 ${
-            result.score >= 7
-              ? 'border-emerald-500 bg-emerald-50'
-              : result.score >= 4
-                ? 'border-amber-500 bg-amber-50'
-                : 'border-rose-500 bg-rose-50'
-          }`}
-        >
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">
-            Score : {result.score} / {result.total}
-          </h2>
-          <p className="text-slate-700">
-            {result.score === 10
-              ? '🎉 Sans-faute ! Tu maitrises ce chapitre.'
-              : result.score >= 7
-                ? '👍 Bon résultat. Revois les questions ratées en bas de page.'
-                : result.score >= 4
-                  ? "📚 Tu as les bases, mais des révisions s'imposent."
-                  : '⚠️ Il faut reprendre le cours en profondeur.'}
-          </p>
-          <Link to="/history" className="btn-secondary mt-4 inline-flex">
-            Retour à l'historique
-          </Link>
+        <div className={`rounded-xl border p-5 ${scoreVariant.bg}`}>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className={`${scoreVariant.badge} text-white rounded-xl w-16 h-16 flex flex-col items-center justify-center shrink-0`}>
+              <span className="text-2xl font-black leading-none">{result.score}</span>
+              <span className="text-xs opacity-75">/10</span>
+            </div>
+            <div>
+              <p className={`font-bold text-base ${scoreVariant.text}`}>
+                {result.score === 10
+                  ? 'Sans-faute ! Tu maîtrises ce chapitre.'
+                  : result.score >= 7
+                    ? 'Bon résultat. Revois les questions ratées ci-dessous.'
+                    : result.score >= 4
+                      ? "Des bases solides, mais des révisions s'imposent."
+                      : 'Il faut reprendre le cours en profondeur.'}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {result.details.filter((d) => d.correct).length} bonne(s) réponse(s) sur {result.total}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 flex gap-2">
+            <Link to="/history" className="btn-secondary !text-xs !py-1.5 !px-3 gap-1.5">
+              <History size={13} /> Historique
+            </Link>
+            <Link to="/review" className="btn-secondary !text-xs !py-1.5 !px-3 gap-1.5">
+              <BookOpen size={13} /> Réviser mes erreurs
+            </Link>
+          </div>
         </div>
       )}
 
@@ -93,26 +144,41 @@ export default function QuizPage() {
       {quiz.questions.map((q) => {
         const userChoice = answers[q.index];
         const detail = result?.details.find((d) => d.index === q.index);
+        const isAnswered = userChoice !== undefined;
 
         return (
-          <article key={q.index} className="card">
-            <div className="flex items-baseline gap-2 mb-3">
-              <span className="font-mono text-sm text-indigo-600">Q{q.index}</span>
-              <h3 className="font-semibold text-slate-900">{q.prompt}</h3>
+          <div
+            key={q.index}
+            className={`card transition-all ${isAnswered && !result ? 'border-blue-200 dark:border-blue-800' : ''}`}
+          >
+            <div className="flex items-start gap-3 mb-4">
+              <span className="shrink-0 w-7 h-7 rounded-md bg-blue-600 flex items-center justify-center text-white text-xs font-bold mt-0.5">
+                {q.index}
+              </span>
+              <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm leading-relaxed">{q.prompt}</p>
             </div>
-            <div className="space-y-2">
+
+            <div className="space-y-2 ml-10">
               {q.options.map((opt, optIdx) => {
                 const isSelected = userChoice === optIdx;
                 const isCorrect = detail && q.correct_index === optIdx;
                 const isWrongPick = detail && isSelected && !detail.correct;
 
-                let cls = 'border-slate-200 hover:bg-slate-50';
+                let cls = 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950 cursor-pointer';
+                let icon = null;
+
                 if (result) {
-                  if (isCorrect) cls = 'border-emerald-500 bg-emerald-50';
-                  else if (isWrongPick) cls = 'border-rose-500 bg-rose-50';
-                  else cls = 'border-slate-200 opacity-60';
+                  if (isCorrect) {
+                    cls = 'border-emerald-400 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-300 cursor-default';
+                    icon = <CheckCircle size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />;
+                  } else if (isWrongPick) {
+                    cls = 'border-red-400 dark:border-red-700 bg-red-50 dark:bg-red-950 text-red-900 dark:text-red-300 cursor-default';
+                    icon = <XCircle size={15} className="text-red-500 dark:text-red-400 shrink-0" />;
+                  } else {
+                    cls = 'border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600 opacity-50 cursor-default';
+                  }
                 } else if (isSelected) {
-                  cls = 'border-indigo-500 bg-indigo-50';
+                  cls = 'border-blue-500 dark:border-blue-600 bg-blue-50 dark:bg-blue-950 text-blue-900 dark:text-blue-300 cursor-pointer';
                 }
 
                 return (
@@ -121,39 +187,42 @@ export default function QuizPage() {
                     type="button"
                     disabled={!!result}
                     onClick={() => handleSelect(q.index, optIdx)}
-                    className={`w-full text-left p-3 border-2 rounded transition ${cls}`}
+                    className={`w-full text-left flex items-center gap-3 px-3 py-2.5 border rounded-lg transition-all text-sm ${cls}`}
                   >
-                    <span className="font-mono mr-2 text-slate-500">
-                      {String.fromCharCode(65 + optIdx)}.
+                    <span className="shrink-0 w-6 h-6 rounded border border-current flex items-center justify-center text-xs font-bold opacity-60 font-mono">
+                      {String.fromCharCode(65 + optIdx)}
                     </span>
-                    {opt}
-                    {result && isCorrect && (
-                      <span className="ml-2 text-emerald-600 font-bold">✓</span>
-                    )}
-                    {result && isWrongPick && (
-                      <span className="ml-2 text-rose-600 font-bold">✗</span>
-                    )}
+                    <span className="flex-1">{opt}</span>
+                    {icon}
                   </button>
                 );
               })}
             </div>
-          </article>
+          </div>
         );
       })}
 
       {/* Soumission */}
       {!result && (
-        <button
-          onClick={handleSubmit}
-          disabled={!allAnswered || submitting}
-          className="btn-signature w-full py-3 text-base"
-        >
-          {submitting
-            ? 'Correction en cours…'
-            : allAnswered
-              ? '🎯 Soumettre mes réponses'
-              : `Répondre à toutes les questions (${Object.keys(answers).length}/10)`}
-        </button>
+        <div className="sticky bottom-4 pt-2">
+          <button
+            onClick={handleSubmit}
+            disabled={!allAnswered || submitting}
+            className="btn-amber w-full py-3.5 text-base shadow-lg gap-2"
+          >
+            {submitting ? (
+              <>
+                <Loader2 size={18} className="animate-spin" /> Correction en cours...
+              </>
+            ) : allAnswered ? (
+              <>
+                <Send size={18} /> Soumettre mes réponses
+              </>
+            ) : (
+              `Répondre à toutes les questions (${answeredCount}/10)`
+            )}
+          </button>
+        </div>
       )}
     </div>
   );

@@ -9,11 +9,16 @@ Endpoints d'authentification (Lot 3 : email-identifiant + validation + reset).
     POST /api/accounts/resend-verification/      — renvoyer l'email de validation
     POST /api/accounts/password-reset/           — demander un reset (envoie un email)
     POST /api/accounts/password-reset/confirm/   — définir le nouveau mot de passe
+    GET  /api/accounts/export/                  — export données personnelles (RGPD art. 20)
 """
 
+import json
+import json
 import logging
 
 from django.contrib.auth import login as django_login
+from django.http import HttpResponse
+from django.utils import timezone
 from django.contrib.auth import logout as django_logout
 from django.contrib.auth.models import User
 from drf_spectacular.utils import OpenApiResponse, extend_schema
@@ -303,3 +308,64 @@ class ChangePasswordView(APIView):
         Token.objects.filter(user=user).delete()
         token = Token.objects.create(user=user)
         return Response({"detail": "Mot de passe modifié.", "token": token.key})
+
+
+class ExportDataView(APIView):
+    """GET /api/accounts/export/ — RGPD art. 20 droit à la portabilité.
+
+    Retourne toutes les données personnelles de l'utilisateur connecté en JSON
+    téléchargeable. Filtré strictement par user : un utilisateur ne peut accéder
+    qu'à ses propres données.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Export données personnelles (RGPD art. 20 — portabilité)",
+        responses={200: OpenApiResponse(description="Fichier JSON contenant toutes les données de l'utilisateur")},
+    )
+    def get(self, request):
+        from quizzes.models import Quiz
+
+        user = request.user
+        quizzes = Quiz.objects.filter(user=user).prefetch_related("questions")
+
+        payload = {
+            "export_date": timezone.now().isoformat(),
+            "rgpd_note": "Export généré conformément au RGPD art. 20 (droit à la portabilité). Données filtrées exclusivement pour l'utilisateur authentifié.",
+            "user": {
+                "username": user.username,
+                "email": user.email,
+                "date_joined": user.date_joined.isoformat(),
+                "last_login": user.last_login.isoformat() if user.last_login else None,
+            },
+            "quizzes": [
+                {
+                    "id": q.id,
+                    "title": q.title,
+                    "source_text": q.source_text,
+                    "score": q.score,
+                    "created_at": q.created_at.isoformat(),
+                    "questions": [
+                        {
+                            "index": question.index,
+                            "prompt": question.prompt,
+                            "options": question.options,
+                            "correct_index": question.correct_index,
+                            "selected_index": question.selected_index,
+                        }
+                        for question in q.questions.all()
+                    ],
+                }
+                for q in quizzes
+            ],
+        }
+
+        response = HttpResponse(
+            json.dumps(payload, indent=2, ensure_ascii=False),
+            content_type="application/json",
+        )
+        response["Content-Disposition"] = (
+            f'attachment; filename="edututor-export-{user.username}.json"'
+        )
+        return response

@@ -35,8 +35,8 @@ class QuizListView(generics.ListAPIView):
         return super().get(request, *args, **kwargs)
 
 
-class QuizDetailView(generics.RetrieveAPIView):
-    """Détail d'un quiz (les 10 questions complètes)."""
+class QuizDetailView(generics.RetrieveDestroyAPIView):
+    """Détail d'un quiz (GET) + suppression (DELETE)."""
 
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]

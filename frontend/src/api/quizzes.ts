@@ -5,6 +5,7 @@ export type Question = {
   prompt: string;
   options: string[];
   correct_index: number;
+  selected_index: number | null;
 };
 
 export type Quiz = {
@@ -105,4 +106,9 @@ export async function getStats(): Promise<Stats> {
 export async function getMistakes(): Promise<{ count: number; mistakes: Mistake[] }> {
   const { data } = await api.get<{ count: number; mistakes: Mistake[] }>('/quizzes/mistakes/');
   return data;
+}
+
+/** Supprime un quiz de l'historique. */
+export async function deleteQuiz(id: number): Promise<void> {
+  await api.delete(`/quizzes/${id}/`);
 }

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateQuiz } from '@/api/llm';
 import { getApiErrorMessage } from '@/api/errors';
+import { FileText, FileUp, Sparkles, AlertCircle, UploadCloud } from 'lucide-react';
 
 export default function UploadPage() {
   const navigate = useNavigate();
@@ -30,22 +31,31 @@ export default function UploadPage() {
     }
   };
 
+  const charCount = sourceText.length;
+  const charOk = charCount >= 200;
+
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold text-slate-900 mb-2">Créer un nouveau quiz</h1>
-      <p className="text-slate-600 mb-6">
-        Uploade un PDF ou colle un texte. EduTutor IA génère 10 questions QCM.
-      </p>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-1">
+          Créer un nouveau quiz
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Importe un cours, l'IA génère 10 questions QCM en 1 à 5 minutes.
+        </p>
+      </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-rose-50 border-l-4 border-rose-500 text-sm text-rose-900 rounded">
+        <div className="alert-error mb-6 flex items-start gap-2">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="card space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Titre du cours</label>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Titre */}
+        <div className="card">
+          <label className="label">Titre du cours</label>
           <input
             type="text"
             required
@@ -56,73 +66,107 @@ export default function UploadPage() {
           />
         </div>
 
-        <div>
-          <div className="flex gap-2 mb-3">
+        {/* Source */}
+        <div className="card">
+          {/* Tabs */}
+          <div className="flex gap-1 mb-5 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg w-fit">
             <button
               type="button"
               onClick={() => setMode('text')}
-              className={`px-3 py-1 rounded text-sm font-medium ${
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
                 mode === 'text'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
-              📝 Texte collé
+              <FileText size={14} /> Texte
             </button>
             <button
               type="button"
               onClick={() => setMode('pdf')}
-              className={`px-3 py-1 rounded text-sm font-medium ${
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
                 mode === 'pdf'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
-              📄 PDF
+              <FileUp size={14} /> PDF
             </button>
           </div>
 
           {mode === 'text' ? (
-            <textarea
-              required
-              rows={10}
-              minLength={200}
-              value={sourceText}
-              onChange={(e) => setSourceText(e.target.value)}
-              placeholder="Collez ici le texte de votre cours (au moins 200 caractères)…"
-              className="input"
-            />
+            <div>
+              <label className="label">Contenu du cours</label>
+              <div className="relative">
+                <textarea
+                  required
+                  rows={12}
+                  minLength={200}
+                  value={sourceText}
+                  onChange={(e) => setSourceText(e.target.value)}
+                  placeholder="Collez ici le texte de votre cours (minimum 200 caractères)..."
+                  className="input resize-none"
+                />
+                <span
+                  className={`absolute bottom-2.5 right-3 text-xs font-mono ${
+                    charOk ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'
+                  }`}
+                >
+                  {charCount} / 200
+                </span>
+              </div>
+            </div>
           ) : (
-            <input
-              type="file"
-              accept=".pdf,application/pdf"
-              required
-              onChange={(e) => setPdf(e.target.files?.[0] ?? null)}
-              className="input"
-            />
-          )}
-          {mode === 'text' && (
-            <p className="text-xs text-slate-500 mt-1">
-              {sourceText.length} / 200 caractères minimum
-            </p>
+            <div>
+              <label className="label">Fichier PDF</label>
+              <label className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-10 cursor-pointer hover:border-blue-400 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors text-center">
+                <UploadCloud
+                  size={36}
+                  className={pdf ? 'text-blue-600 dark:text-blue-400' : 'text-slate-300 dark:text-slate-600'}
+                />
+                <div>
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {pdf ? pdf.name : 'Cliquez pour sélectionner un PDF'}
+                  </p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">PDF uniquement, 5 Mo max.</p>
+                </div>
+                <input
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  required
+                  onChange={(e) => setPdf(e.target.files?.[0] ?? null)}
+                  className="sr-only"
+                />
+              </label>
+            </div>
           )}
         </div>
 
-        <button type="submit" disabled={loading} className="btn-primary w-full">
-          {loading ? (
-            <>
-              <span className="animate-spin">⏳</span> Génération en cours… (1 à 5 min sur CPU,
-              patientez)
-            </>
-          ) : (
-            <>🚀 Générer le quiz</>
-          )}
-        </button>
+        {/* Submit */}
+        <div className="space-y-3">
+          <button
+            type="submit"
+            disabled={loading || (mode === 'text' && !charOk)}
+            className="btn-amber w-full py-3 text-base gap-2"
+          >
+            {loading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-slate-900/20 border-t-slate-900 rounded-full animate-spin" />
+                Génération en cours... (1 à 5 min)
+              </>
+            ) : (
+              <>
+                <Sparkles size={18} /> Générer le quiz
+              </>
+            )}
+          </button>
 
-        <p className="text-xs text-slate-500 text-center">
-          La génération peut prendre de 1 à 5 minutes selon votre machine (bien plus rapide avec un
-          GPU ou un modèle plus léger).
-        </p>
+          {loading && (
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
+              L'IA tourne en local sur votre machine. Ne fermez pas cette page.
+            </p>
+          )}
+        </div>
       </form>
     </div>
   );

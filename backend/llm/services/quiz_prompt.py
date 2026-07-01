@@ -32,6 +32,9 @@ Règles ABSOLUES :
 - Exactement 10 questions.
 - Chaque question a EXACTEMENT 4 options.
 - Une seule bonne réponse par question, indiquée par "correct_index" (0 à 3).
+- IMPÉRATIF : les valeurs de correct_index doivent être VARIÉES sur les 10 questions.
+  Utilise chaque valeur (0, 1, 2, 3) au moins 2 fois. Ne répète jamais le même
+  correct_index plus de 3 fois de suite. Exemple de bonne distribution : 0,2,1,3,1,0,3,2,1,0.
 - Pas de markdown, pas de balises HTML, pas d'explications hors JSON.
 - Sortie = JSON STRICT et UNIQUEMENT JSON.
 
@@ -39,7 +42,9 @@ Format de sortie :
 {
   "questions": [
     {"prompt": "...", "options": ["...","...","...","..."], "correct_index": 0},
-    ... (10 entrées)
+    {"prompt": "...", "options": ["...","...","...","..."], "correct_index": 2},
+    {"prompt": "...", "options": ["...","...","...","..."], "correct_index": 1},
+    ... (10 entrées au total)
   ]
 }
 """
@@ -127,6 +132,12 @@ def parse_and_validate_quiz(raw: str) -> list[dict]:
             raise LLMError(f"Question {i} : il faut exactement 4 options.")
         if not all(isinstance(o, str) and o.strip() for o in options):
             raise LLMError(f"Question {i} : options invalides.")
+        # Tolérance phi3:mini : il renvoie parfois correct_index comme string ("2")
+        if isinstance(correct_index, str):
+            try:
+                correct_index = int(correct_index)
+            except ValueError:
+                raise LLMError(f"Question {i} : correct_index '{correct_index}' invalide.")
         if not isinstance(correct_index, int) or correct_index not in (0, 1, 2, 3):
             raise LLMError(f"Question {i} : correct_index doit être 0, 1, 2 ou 3.")
 
@@ -136,6 +147,16 @@ def parse_and_validate_quiz(raw: str) -> list[dict]:
                 "options": [o.strip() for o in options],
                 "correct_index": correct_index,
             }
+        )
+
+    # 5. Garde-fou anti-prompt-injection (J3) — détection statistique
+    # Plus de 6 questions avec le même correct_index = impossible avec un vrai cours.
+    indices = [q["correct_index"] for q in cleaned]
+    most_common = max(indices.count(i) for i in range(4))
+    if most_common > 6:
+        raise LLMError(
+            f"Sortie LLM suspecte : {most_common}/10 questions ont le même correct_index. "
+            "Possible prompt injection — quiz rejeté."
         )
 
     return cleaned

@@ -8,7 +8,7 @@ from .models import Question, Quiz
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = ["index", "prompt", "options", "correct_index"]
+        fields = ["index", "prompt", "options", "correct_index", "selected_index"]
 
 
 class QuestionPublicSerializer(serializers.ModelSerializer):
