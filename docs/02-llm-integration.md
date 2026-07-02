@@ -98,7 +98,7 @@ OLLAMA_MODEL=llama3.2:3b      # plus léger (2 Go) si vous avez peu de RAM
 # ou
 OLLAMA_MODEL=mistral:7b        # alternative
 # ou
-OLLAMA_MODEL=phi3:mini         # 2.3 Go, rapide
+OLLAMA_MODEL=llama3.2:3b         # 2.3 Go, rapide
 ```
 
 Puis :

@@ -14,7 +14,7 @@ Guide pas-à-pas pour passer de **zéro à un quiz généré par LLM** en ~10 mi
 | RAM disponible | **8 Go** | Ollama charge ~5 Go au lancement du modèle |
 | Espace disque | **8 Go** | Llama 3.1 8B = 4.7 Go + images Docker |
 
-> 💡 **Pas assez de RAM pour Llama 3.1 8B ?** Passez sur Llama 3.2 3B (`OLLAMA_MODEL=llama3.2:3b` dans `.env`) ou Phi-3 (`phi3:mini`).
+> 💡 **Pas assez de RAM pour Llama 3.1 8B ?** Passez sur Llama 3.2 3B (`OLLAMA_MODEL=llama3.2:3b` dans `.env`) .
 
 ---
 

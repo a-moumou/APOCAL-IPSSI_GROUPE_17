@@ -132,7 +132,7 @@ def parse_and_validate_quiz(raw: str) -> list[dict]:
             raise LLMError(f"Question {i} : il faut exactement 4 options.")
         if not all(isinstance(o, str) and o.strip() for o in options):
             raise LLMError(f"Question {i} : options invalides.")
-        # Tolérance phi3:mini : il renvoie parfois correct_index comme string ("2")
+        # Tolérance llama3.2:3b : il renvoie parfois correct_index comme string ("2")
         if isinstance(correct_index, str):
             try:
                 correct_index = int(correct_index)

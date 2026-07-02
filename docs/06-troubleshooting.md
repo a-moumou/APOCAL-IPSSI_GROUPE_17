@@ -90,7 +90,7 @@ make pull-model
 Vous tournez sur CPU sans GPU. Solutions :
 
 1. **Modèle plus petit** : `OLLAMA_MODEL=llama3.2:3b` (2 Go vs 4.7 Go)
-2. **Phi-3 mini** : `OLLAMA_MODEL=phi3:mini` (2.3 Go, très rapide)
+2. **Llama 3.2 3B** : `OLLAMA_MODEL=llama3.2:3b` (~2 Go, rapide)
 3. **GPU NVIDIA disponible** : décommenter le bloc `deploy.resources.reservations.devices` dans `docker-compose.yml`
 4. **Mode mock pour dev** : `LLM_BACKEND=mock` (instantané, déterministe)
 5. **Centraliser Ollama** : 1 seul membre héberge, les autres consomment via le réseau local

@@ -57,7 +57,7 @@ OVHcloud propose plusieurs gammes de VPS (les noms commerciaux évoluent ; à l'
 **Reco chiffrée — Cas B : Ollama local (souveraineté / hors-ligne)**
 
 - **4 vCore / 16 Go RAM / 160 Go SSD-NVMe** recommandé : le modèle occupe ~5–6 Go de RAM en plus de Postgres/Django/front.
-- Plancher absolu : **4 vCore / 8 Go RAM / 80 Go**, et dans ce cas réduisez le modèle (`OLLAMA_MODEL=llama3.2:3b` ≈ 2 Go ou `phi3:mini` ≈ 2,3 Go) pour éviter l'OOM-killer.
+- Plancher absolu : **4 vCore / 8 Go RAM / 80 Go**, et dans ce cas réduisez le modèle (`OLLAMA_MODEL=llama3.2:3b` ≈ 2 Go) pour éviter l'OOM-killer.
 - Prévoyez le disque : l'image Ollama + le modèle ajoutent plusieurs Go ; un disque trop petit fait échouer le `ollama pull`.
 
 > ⚠️ Sous-dimensionner la RAM avec Ollama = le conteneur se fait tuer par l'OOM-killer Linux ou la machine part en swap (lenteur extrême). En cas de doute, prenez la RAM au-dessus : c'est moins cher que de migrer le VPS en pleine semaine de formation.
@@ -1448,7 +1448,7 @@ Possible **à condition de dimensionner le VPS** (cas B, section 1.2 : ≥ 8 Go 
 ```bash
 LLM_BACKEND=ollama
 OLLAMA_HOST=http://ollama:11434
-OLLAMA_MODEL=llama3.2:3b      # ~2 Go ; ou phi3:mini (~2,3 Go)
+OLLAMA_MODEL=llama3.2:3b      # ~2 Go ; 
 OLLAMA_TIMEOUT=600
 ```
 

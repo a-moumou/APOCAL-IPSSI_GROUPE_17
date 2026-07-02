@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduTutor IA — Soutenance APOCAL'IPSSI 2026 — Équipe 17</title>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#2563eb;--blue-l:#3b82f6;--blue-xl:#60a5fa;--blue-2xl:#93c5fd;
+  --slate-900:#0f172a;--slate-800:#1e293b;--slate-700:#334155;
+  --slate-600:#475569;--slate-400:#94a3b8;--slate-200:#e2e8f0;
+  --amber:#f59e0b;--amber-l:#fcd34d;
+  --green:#10b981;--green-l:#6ee7b7;
+  --red:#ef4444;--red-l:#fca5a5;
+  --teal:#14b8a6;--teal-l:#5eead4;
+  --purple-l:#c4b5fd;--white:#ffffff;
+}
+html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--slate-900);color:var(--white);overflow:hidden;user-select:none}
+
+/* DECK */
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+.slide{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  padding:48px 72px 80px;
+  opacity:0;transform:translateX(60px);
+  transition:opacity .4s ease,transform .4s ease;pointer-events:none;
+}
+.slide.active{opacity:1;transform:none;pointer-events:all}
+.slide.prev{opacity:0;transform:translateX(-60px)}
+
+/* MOTS CLÉS BAR */
+.kw-bar{
+  position:absolute;bottom:0;left:0;right:0;
+  background:rgba(0,0,0,.45);backdrop-filter:blur(12px);
+  border-top:1px solid rgba(255,255,255,.08);
+  padding:10px 24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.kw-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--slate-600);flex-shrink:0}
+.kw{
+  font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:rgba(37,99,235,.18);color:var(--blue-2xl);
+  border:1px solid rgba(59,130,246,.3);white-space:nowrap;
+}
+.kw.amber{background:rgba(245,158,11,.15);color:var(--amber-l);border-color:rgba(245,158,11,.3)}
+.kw.green{background:rgba(16,185,129,.15);color:var(--green-l);border-color:rgba(16,185,129,.3)}
+.kw.red{background:rgba(239,68,68,.15);color:var(--red-l);border-color:rgba(239,68,68,.3)}
+.kw.teal{background:rgba(20,184,166,.15);color:var(--teal-l);border-color:rgba(20,184,166,.3)}
+.kw.purple{background:rgba(139,92,246,.15);color:var(--purple-l);border-color:rgba(139,92,246,.3)}
+
+/* NAV */
+.nav{
+  position:fixed;bottom:52px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:14px;
+  background:rgba(15,23,42,.85);backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:8px 18px;z-index:200;
+}
+.nav button{background:none;border:none;color:var(--white);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:background .2s}
+.nav button:hover:not(:disabled){background:rgba(255,255,255,.12)}
+.nav button:disabled{opacity:.25;cursor:default}
+.ctr{font-size:12px;color:var(--slate-400);min-width:52px;text-align:center;font-variant-numeric:tabular-nums}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--slate-600);cursor:pointer;transition:all .25s}
+.dot.active{background:var(--blue-l);transform:scale(1.5)}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--teal));transition:width .4s ease;z-index:300}
+.chapter{position:fixed;top:20px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--slate-400);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:4px 12px;z-index:100}
+
+/* BACKGROUNDS */
+.bg-dark{background:var(--slate-900)}
+.bg-blue{background:linear-gradient(135deg,#1e40af,#2563eb,#3b82f6)}
+.bg-j1{background:radial-gradient(ellipse at 20% 50%,#0d1f3c,#0a1220)}
+.bg-j2{background:radial-gradient(ellipse at 70% 30%,#0c2340,#08111e)}
+.bg-j3{background:radial-gradient(ellipse at 30% 70%,#1a0808,#0f0505)}
+.bg-j4{background:radial-gradient(ellipse at 60% 60%,#042222,#030d0d)}
+.bg-end{background:linear-gradient(135deg,#1e40af,#2563eb,#0ea5e9)}
+
+/* TYPO */
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:999px;margin-bottom:16px}
+.tag-blue{background:rgba(37,99,235,.2);color:var(--blue-2xl);border:1px solid rgba(59,130,246,.3)}
+.tag-amber{background:rgba(245,158,11,.15);color:var(--amber-l);border:1px solid rgba(245,158,11,.3)}
+.tag-green{background:rgba(16,185,129,.15);color:var(--green-l);border:1px solid rgba(16,185,129,.3)}
+.tag-red{background:rgba(239,68,68,.15);color:var(--red-l);border:1px solid rgba(239,68,68,.3)}
+.tag-teal{background:rgba(20,184,166,.15);color:var(--teal-l);border:1px solid rgba(20,184,166,.3)}
+.tag-purple{background:rgba(139,92,246,.15);color:var(--purple-l);border:1px solid rgba(139,92,246,.3)}
+
+h1{font-size:clamp(34px,5vw,68px);font-weight:800;line-height:1.1;letter-spacing:-.03em}
+h2{font-size:clamp(24px,3.2vw,46px);font-weight:700;line-height:1.15;letter-spacing:-.025em}
+h3{font-size:clamp(14px,1.6vw,20px);font-weight:600;line-height:1.3}
+.sub{font-size:clamp(13px,1.3vw,17px);color:var(--slate-400);line-height:1.65;margin-top:10px}
+.hl{color:var(--blue-xl)} .ha{color:var(--amber-l)} .hg{color:var(--green-l)} .hr{color:var(--red-l)} .ht{color:var(--teal-l)}
+
+/* LAYOUT */
+.w100{width:100%}
+.narrow{max-width:680px;width:100%;text-align:center}
+.mid{max-width:860px;width:100%}
+.wide{max-width:1080px;width:100%}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;width:100%}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%}
+.col{display:flex;flex-direction:column}
+.row{display:flex;align-items:center}
+.gap-s{gap:8px}.gap-m{gap:14px}.gap-l{gap:22px}
+.mt-s{margin-top:10px}.mt-m{margin-top:20px}.mt-l{margin-top:28px}
+.center{text-align:center;align-items:center}
+
+/* CARDS */
+.card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px 20px}
+.card-blue{background:rgba(37,99,235,.1);border-color:rgba(59,130,246,.25)}
+.card-amber{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.25)}
+.card-green{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.25)}
+.card-red{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25)}
+.card-teal{background:rgba(20,184,166,.08);border-color:rgba(20,184,166,.25)}
+.card-purple{background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.25)}
+.card p{font-size:13px;color:var(--slate-400);line-height:1.65}
+.card ul{font-size:12px;color:var(--slate-400);padding-left:14px;line-height:1.9}
+
+/* KPI */
+.kpi{text-align:center;padding:18px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px}
+.kpi-v{font-size:clamp(24px,3vw,40px);font-weight:800;letter-spacing:-.03em;line-height:1}
+.kpi-l{font-size:10px;color:var(--slate-400);margin-top:5px;text-transform:uppercase;letter-spacing:.08em;font-weight:500}
+
+/* FEATURE ITEM */
+.fi{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 14px}
+.fi-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.fi-name{font-size:13px;font-weight:600}
+.fi-desc{font-size:11px;color:var(--slate-400)}
+
+/* CODE */
+.code{font-family:'SF Mono','Fira Code',monospace;font-size:11px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 16px;color:#a5f3fc;line-height:1.75;width:100%}
+.code .kw{color:#c084fc}.code .str{color:#86efac}.code .cmt{color:#475569}
+
+/* REF */
+.ref{font-family:monospace;font-size:.8em;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);padding:2px 7px;border-radius:4px;color:var(--slate-400)}
+
+/* PILLS */
+.pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:500;color:var(--slate-200)}
+.pill.me{background:rgba(37,99,235,.2);border-color:rgba(59,130,246,.4);color:var(--blue-2xl)}
+.team{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:16px}
+
+/* ARIA TAGS */
+.atag{font-family:monospace;font-size:10px;background:rgba(139,92,246,.18);color:var(--purple-l);border:1px solid rgba(139,92,246,.3);border-radius:4px;padding:2px 6px;margin:2px;display:inline-block}
+
+/* ICONS */
+svg.lucide{display:inline-block;vertical-align:middle;flex-shrink:0}
+.ico-s svg.lucide{width:14px;height:14px}
+.ico-m svg.lucide{width:20px;height:20px}
+.ico-l svg.lucide{width:26px;height:26px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:7px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--slate-400);border-bottom:1px solid rgba(255,255,255,.1)}
+td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--slate-200)}
+tr.pick{background:rgba(37,99,235,.15)}
+tr.pick td{color:var(--blue-2xl)}
+.ok{color:var(--green-l)}.no{color:var(--red-l)}
+
+/* LLM backend badge */
+.llm-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:500}
+.llm-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="chapter" id="chapter">Intro</div>
+<div class="deck" id="deck">
+
+
+<!-- ══ 1 — TITRE ══ -->
+<div class="slide bg-blue" data-ch="Introduction">
+  <div class="narrow col center gap-l">
+    <div class="tag tag-amber ico-s"><i data-lucide="zap"></i> APOCAL'IPSSI 2026 — Équipe 17</div>
+    <h1>EduTutor IA</h1>
+    <p class="sub" style="max-width:520px">Plateforme de QCM générés par IA locale — 100 % RGPD — 4 jours, 4 perturbations, 76 SP livrés.</p>
+    <div class="team">
+      <span class="pill me">Abdelhadi MOUMOU</span><span class="pill">Jason DAHMOUN</span>
+      <span class="pill">Julie SAINT MARTIN</span><span class="pill">Kephren BIBANG</span>
+      <span class="pill">Mathis PENAGOS</span><span class="pill">Stive GAMY</span><span class="pill">Karam DHIFI</span>
+    </div>
+    <p style="font-size:12px;color:rgba(255,255,255,.35)">Jeudi 02/07/2026 — Release 2</p>
+  </div></div>
+
+
+<!-- ══ 2 — VUE D'ENSEMBLE ══ -->
+<div class="slide bg-dark" data-ch="Introduction">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-blue">Vue d'ensemble</div>
+      <h2>4 jours. <span class="hl">4 perturbations.</span> 1 produit complet.</h2>
+      <p class="sub">De 56 SP planifiés à 76 SP livrés — chaque crise a agrandi le scope, la vélocité a tenu.</p>
+    </div>
+    <div class="g4">
+      <div class="kpi"><div class="kpi-v" style="color:var(--blue-xl)">76</div><div class="kpi-l">Story Points livrés</div></div>
+      <div class="kpi"><div class="kpi-v ha">+20 SP</div><div class="kpi-l">Hors scope initial</div></div>
+      <div class="kpi"><div class="kpi-v hg">9</div><div class="kpi-l">Backends LLM</div></div>
+      <div class="kpi"><div class="kpi-v" style="color:var(--purple-l)">100%</div><div class="kpi-l">Local · RGPD</div></div>
+    </div>
+    <div class="g4">
+      <div class="card" style="border-color:rgba(59,130,246,.3);background:rgba(37,99,235,.08);text-align:center;padding:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--blue-2xl);letter-spacing:.06em">J1 — LUNDI</div>
+        <div style="font-size:11px;color:var(--slate-400);margin-top:4px">Cadrage · Architecture · Perturbation Lefèvre</div>
+      </div>
+      <div class="card" style="border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.08);text-align:center;padding:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--green-l);letter-spacing:.06em">J2 — MARDI</div>
+        <div style="font-size:11px;color:var(--slate-400);margin-top:4px">MVP F1-F6 · Auth · Admin · Multi-LLM · CI/CD</div>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.08);text-align:center;padding:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--red-l);letter-spacing:.06em">J3 — MERCREDI</div>
+        <div style="font-size:11px;color:var(--slate-400);margin-top:4px">Sécurité LLM · RGPD · Release 1</div>
+      </div>
+      <div class="card" style="border-color:rgba(20,184,166,.3);background:rgba(20,184,166,.08);text-align:center;padding:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--teal-l);letter-spacing:.06em">J4 — JEUDI</div>
+        <div style="font-size:11px;color:var(--slate-400);margin-top:4px">RGAA · i18n · Scalabilité · Release 2</div>
+      </div>
+    </div>
+  </div></div>
+
+
+<!-- ══ 3 — J1 : CADRAGE ══ -->
+<div class="slide bg-j1" data-ch="J1 — Lundi · Cadrage">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-blue">J1 · Lundi matin — Cadrage produit</div>
+      <h2>Comprendre <span class="hl">le problème</span> avant de coder.</h2>
+      <p class="sub">Trois artefacts pour cadrer le produit, la cible, et le périmètre avant d'écrire une ligne.</p>
+    </div>
+    <div class="g3">
+      <div class="card card-blue">
+        <div class="ico-l" style="color:var(--blue-2xl);margin-bottom:10px"><i data-lucide="target"></i></div>
+        <h3 style="font-size:14px;color:var(--blue-2xl);margin-bottom:6px">Product Vision Board</h3>
+        <p>Cible : étudiant BTS/Licence. Besoin : quiz instantané. Différenciateur : <strong style="color:var(--white)">100 % local, 0 cloud, RGPD natif.</strong> Proposition de valeur claire dès J1.</p>
+        <p class="mt-s"><span class="ref">product-vision-board-v1.1.docx</span></p>
+      </div>
+      <div class="card card-blue">
+        <div class="ico-l" style="color:var(--blue-2xl);margin-bottom:10px"><i data-lucide="user"></i></div>
+        <h3 style="font-size:14px;color:var(--blue-2xl);margin-bottom:6px">Persona — Lucas, 20 ans</h3>
+        <p>BTS SIO, révise seul à 23h, cours denses en PDF. Frustration : pas de retour immédiat. Objectif : savoir où il en est <em>avant</em> les partiels.</p>
+        <p class="mt-s"><span class="ref">persona-v1.0.docx</span></p>
+      </div>
+      <div class="card card-blue">
+        <div class="ico-l" style="color:var(--blue-2xl);margin-bottom:10px"><i data-lucide="map"></i></div>
+        <h3 style="font-size:14px;color:var(--blue-2xl);margin-bottom:6px">Story Map + Customer Journey</h3>
+        <p>6 épopées : Import → Génération → Quiz → Résultats → Historique → Profil. <strong style="color:var(--white)">56 SP</strong> planifiés sur 2 releases. Journey map validée avec le persona.</p>
+        <p class="mt-s"><span class="ref">story-map-v1.0.docx</span> · <span class="ref">customer-journey-v1.0.docx</span></p>
+      </div>
+    </div>
+  </div></div>
+
+
+<!-- ══ 4 — J1 : PERTURBATION ══ -->
+<div class="slide bg-j1" data-ch="J1 — Lundi · Perturbation">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-amber">J1 · Lundi PM — Perturbation déverrouillée</div>
+      <h2>Nouvelle cible : <span class="ha">Mme Lefèvre,</span> enseignante.</h2>
+      <p class="sub">Le scope s'élargit dès J1 : l'app doit aussi servir les profs qui veulent générer des évaluations pour leurs classes. <strong style="color:var(--white)">+8 SP</strong> intégrés.</p>
+    </div>
+    <div class="g2" style="align-items:start">
+      <div class="col gap-m">
+        <div class="card card-amber">
+          <div class="ico-l" style="color:var(--amber-l);margin-bottom:10px"><i data-lucide="user-plus"></i></div>
+          <h3 style="font-size:14px;color:var(--amber-l);margin-bottom:6px">Persona v2 — Mme Lefèvre, 42 ans</h3>
+          <p>Professeure de lycée. Veut créer des QCM pour ses élèves depuis ses cours PDF. Contrainte : données élèves RGPD-sensibles → local-first encore plus critique.</p>
+          <p class="mt-s"><span class="ref">persona-v2.0.docx</span></p>
+        </div>
+        <div class="card">
+          <h3 style="font-size:13px;margin-bottom:8px">Décision de priorisation</h3>
+          <ul>
+            <li>Stories US-09 à US-11 ajoutées au backlog</li>
+            <li>Priorisées MoSCoW : SHOULD pour R1, MUST pour R2</li>
+            <li>Vision Board mis à jour (v1.1) pour refléter la double cible</li>
+          </ul>
+          <p class="mt-s"><span class="ref">note-decision-j1-v1.0.docx</span> · <span class="ref">product-backlog-j1-v2.0.xlsx</span></p>
+        </div>
+      </div>
+      <div class="col gap-m">
+        <div class="card card-green">
+          <h3 style="font-size:13px;color:var(--green-l);margin-bottom:8px">Impact sur le scope</h3>
+          <div class="g2" style="gap:10px;margin-top:4px">
+            <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:12px;text-align:center">
+              <div style="font-size:24px;font-weight:800;color:var(--green-l)">56</div>
+              <div style="font-size:10px;color:var(--slate-400);text-transform:uppercase;margin-top:2px">SP avant J1</div>
+            </div>
+            <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:12px;text-align:center">
+              <div style="font-size:24px;font-weight:800;color:var(--amber-l)">64</div>
+              <div style="font-size:10px;color:var(--slate-400);text-transform:uppercase;margin-top:2px">SP après J1</div>
+            </div>
+          </div>
+        </div>
+        <div class="card card-blue">
+          <h3 style="font-size:13px;color:var(--blue-2xl);margin-bottom:6px">Ce que ça change techniquement</h3>
+          <ul>
+            <li>Upload doit accepter des fichiers plus structurés (plans de cours)</li>
+            <li>Dashboard doit afficher les stats par classe (futur)</li>
+            <li>RGPD encore plus critique : données d'élèves mineurs</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div></div>
+
+
+<!-- ══ 5 — J1 : ARCHITECTURE ══ -->
+<div class="slide bg-j1" data-ch="J1 — Lundi · Architecture">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-blue">J1 · Lundi PM — Architecture technique</div>
+      <h2>Des choix <span class="hl">assumés,</span> pas du hype.</h2>
+      <p class="sub">Chaque outil répond à une contrainte réelle. La contrainte principale : <strong style="color:var(--white)">zéro donnée hors UE.</strong></p>
+    </div>
+    <div class="g2">
+      <div class="col gap-m">
+        <div class="card card-blue row gap-m"><span class="ico-m" style="color:var(--blue-2xl)"><i data-lucide="terminal"></i></span><div><h3 style="font-size:13px">Django + DRF</h3><p>API REST, ORM, auth native. Stack maîtrisée = vélocité dès J1. <span class="ref">docs/03-auth.md</span></p></div></div>
+        <div class="card card-blue row gap-m"><span class="ico-m" style="color:var(--blue-2xl)"><i data-lucide="atom"></i></span><div><h3 style="font-size:13px">React + Vite + TypeScript</h3><p>SPA auth-wall, hot reload, typage strict. Pas de Next.js : SSR inutile ici. <span class="ref">docs/01-architecture.md</span></p></div></div>
+        <div class="card card-blue row gap-m"><span class="ico-m" style="color:var(--blue-2xl)"><i data-lucide="cpu"></i></span><div><h3 style="font-size:13px">Ollama — LLM 100 % local</h3><p>Le modèle tourne dans Docker. <strong style="color:var(--white)">Zéro API key. Zéro cloud.</strong> RGPD by design.</p></div></div>
+        <div class="card card-green row gap-m"><span class="ico-m" style="color:var(--green-l)"><i data-lucide="layers"></i></span><div><h3 style="font-size:13px">Docker Compose</h3><p><code style="font-size:11px;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">make dev</code> lance tout. Reproductible Mac/Linux/Windows. <span class="ref">00-getting-started.md</span></p></div></div>
+      </div>
+      <div>
+        <div class="code">
+          <span class="cmt"># docker-compose.yml — 5 services</span><br>
+          services:<br>
+          &nbsp;&nbsp;<span class="kw">backend</span>: django + gunicorn + postgresql<br>
+          &nbsp;&nbsp;<span class="kw">frontend</span>: react + vite + nginx<br>
+          &nbsp;&nbsp;<span class="kw">ollama</span>: llm local (llama3.2:3b)<br>
+          &nbsp;&nbsp;<span class="kw">redis</span>: cache (ajouté J4)<br>
+          &nbsp;&nbsp;<span class="kw">postgres</span>: base de données<br><br>
+          <span class="cmt"># → localhost:3000 en un make dev</span>
+        </div>
+        <div class="card card-amber mt-s">
+          <p style="font-size:12px"><strong style="color:var(--amber-l)">Contrainte non négociable :</strong> aucune donnée de cours ne quitte la machine. C'est notre argument différenciateur face aux concurrents cloud (ChatGPT, Gemini). Choix validé dès J1 dans le Vision Board.</p>
+        </div>
+      </div>
+    </div>
+  </div></div>
+
+
+<!-- ══ 6 — J2 : 6 FEATURES MVP ══ -->
+<div class="slide bg-j2" data-ch="J2 — Mardi · MVP">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-green">J2 · Mardi — Sprint MVP</div>
+      <h2><span class="hg">6 features.</span> Le cycle complet de l'élève.</h2>
+      <p class="sub">De l'import du cours à la révision des erreurs — tout le parcours livré en une journée.</p>
+    </div>
+    <div class="g2">
+      <div class="col gap-s">
+        <div class="fi"><div class="fi-ico ico-m" style="background:rgba(37,99,235,.2);color:var(--blue-2xl)"><i data-lucide="file-text"></i></div><div><div class="fi-name">F1 — Import de cours</div><div class="fi-desc">Texte libre ou PDF 5 Mo (PyMuPDF) · <span class="ref">UploadPage.tsx</span></div></div></div>
+        <div class="fi"><div class="fi-ico ico-m" style="background:rgba(139,92,246,.2);color:var(--purple-l)"><i data-lucide="bot"></i></div><div><div class="fi-name">F2 — Génération QCM</div><div class="fi-desc">10 questions via LLM local, JSON validé · <span class="ref">llm/views.py</span></div></div></div>
+        <div class="fi"><div class="fi-ico ico-m" style="background:rgba(16,185,129,.2);color:var(--green-l)"><i data-lucide="check-circle-2"></i></div><div><div class="fi-name">F3 — Passer le quiz</div><div class="fi-desc">Interface radio, soumission, score immédiat · <span class="ref">QuizPage.tsx</span></div></div></div>
+      </div>
+      <div class="col gap-s">
+        <div class="fi"><div class="fi-ico ico-m" style="background:rgba(245,158,11,.2);color:var(--amber-l)"><i data-lucide="bar-chart-2"></i></div><div><div class="fi-name">F4 — Dashboard</div><div class="fi-desc">KPIs, graphe progression, score moyen · <span class="ref">DashboardPage.tsx</span></div></div></div>
+        <div class="fi"><div class="fi-ico ico-m" style="background:rgba(239,68,68,.2);color:var(--red-l)"><i data-lucide="clock"></i></div><div><div class="fi-name">F5 — Historique</div><div class="fi-desc">Tous les quiz passés, tri chrono · <span class="ref">HistoryPage.tsx</span></div></div></div>
+        <div class="fi"><div class="fi-ico ico-m" style="background:rgba(20,184,166,.2);color:var(--teal-l)"><i data-lucide="rotate-cw"></i></div><div><div class="fi-name">F6 — Révision erreurs</div><div class="fi-desc">Questions manquées, bonne réponse · <span class="ref">ReviewMistakesPage.tsx</span></div></div></div>
+      </div>
+    </div>
+  </div></div>
+
+
+<!-- ══ 7 — J2 : AUTH COMPLET ══ -->
+<div class="slide bg-j2" data-ch="J2 — Mardi · Auth">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-green">J2 · Mardi — Système d'authentification complet</div>
+      <h2>Auth sécurisée, <span class="hg">bout en bout.</span></h2>
+      <p class="sub">Bien au-delà d'un simple login/password — un cycle complet de gestion d'identité.</p>
+    </div>
+    <div class="g3">
+      <div class="card card-green">
+        <div class="ico-l" style="color:var(--green-l);margin-bottom:10px"><i data-lucide="log-in"></i></div>
+        <h3 style="font-size:14px;color:var(--green-l);margin-bottom:6px">Inscription / Connexion</h3>
+        <ul>
+          <li>Création de compte avec validation email</li>
+          <li>Token JWT (DRF TokenAuth)</li>
+          <li>Règles de complexité mot de passe côté backend</li>
+        </ul>
+        <p class="mt-s"><span class="ref">SignupPage.tsx</span> · <span class="ref">LoginPage.tsx</span></p>
+      </div>
+      <div class="card card-green">
+        <div class="ico-l" style="color:var(--green-l);margin-bottom:10px"><i data-lucide="mail-check"></i></div>
+        <h3 style="font-size:14px;color:var(--green-l);margin-bottom:6px">Vérification email</h3>
+        <ul>
+          <li>Email de confirmation envoyé via Brevo SMTP</li>
+          <li>Bannière d'alerte tant que non confirmé</li>
+          <li>Renvoi possible depuis la bannière</li>
+        </ul>
+        <p class="mt-s"><span class="ref">VerifyEmailPage.tsx</span> · <span class="ref">VerifyEmailBanner.tsx</span></p>
+      </div>
+      <div class="card card-green">
+        <div class="ico-l" style="color:var(--green-l);margin-bottom:10px"><i data-lucide="key-round"></i></div>
+        <h3 style="font-size:14px;color:var(--green-l);margin-bottom:6px">Mot de passe oublié</h3>
+        <ul>
+          <li>Lien de reset envoyé par email (token temporaire)</li>
+          <li>Page de réinitialisation sécurisée</li>
+          <li>Profil : changement de mot de passe en ligne</li>
+        </ul>
+        <p class="mt-s"><span class="ref">ForgotPasswordPage.tsx</span> · <span class="ref">ResetPasswordPage.tsx</span></p>
+      </div>
+    </div>
+    <div class="card" style="background:rgba(255,255,255,.03);padding:12px 16px">
+      <p style="font-size:12px;color:var(--slate-400)"><strong style="color:var(--white)">docs/03-auth.md</strong> — TokenAuthentication avant SessionAuthentication · suppression de compte = cascade totale (RGPD Art. 17) · ProfilePage avec gestion complète des données</p>
+    </div>
+  </div></div>
+
+
+<!-- ══ 8 — J2 : ADMIN PANEL ══ -->
+<div class="slide bg-j2" data-ch="J2 — Mardi · Admin">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-purple">J2 · Mardi — Panel d'administration</div>
+      <h2>Back-office complet <span style="color:var(--purple-l)">pour l'opérateur.</span></h2>
+      <p class="sub">5 onglets, accessible uniquement aux admins — piloter la plateforme sans toucher au code.</p>
+    </div>
+    <div class="g3" style="margin-bottom:14px">
+      <div class="card card-purple">
+        <div class="ico-m" style="color:var(--purple-l);margin-bottom:8px"><i data-lucide="layout-dashboard"></i></div>
+        <h3 style="font-size:13px;color:var(--purple-l);margin-bottom:5px">Overview</h3>
+        <p>Stats globales : nombre d'utilisateurs, quiz générés, taux de complétion, dernière activité.</p>
+      </div>
+      <div class="card card-purple">
+        <div class="ico-m" style="color:var(--purple-l);margin-bottom:8px"><i data-lucide="users"></i></div>
+        <h3 style="font-size:13px;color:var(--purple-l);margin-bottom:5px">Users</h3>
+        <p>Liste des comptes, statut email vérifié, rôle admin, activation/désactivation de compte.</p>
+      </div>
+      <div class="card card-purple">
+        <div class="ico-m" style="color:var(--purple-l);margin-bottom:8px"><i data-lucide="database"></i></div>
+        <h3 style="font-size:13px;color:var(--purple-l);margin-bottom:5px">Data</h3>
+        <p>Vue sur les quiz et résultats de la plateforme. Purge de données si nécessaire.</p>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card card-purple">
+        <div class="ico-m" style="color:var(--purple-l);margin-bottom:8px"><i data-lucide="cpu"></i></div>
+        <h3 style="font-size:13px;color:var(--purple-l);margin-bottom:5px">LLM Config</h3>
+        <p>Changer de backend LLM (Ollama, Groq, Gemini…) en direct depuis l'interface, sans redémarrer le serveur.</p>
+        <p class="mt-s"><span class="ref">LLMConfigTab.tsx</span></p>
+      </div>
+      <div class="card card-purple">
+        <div class="ico-m" style="color:var(--purple-l);margin-bottom:8px"><i data-lucide="settings-2"></i></div>
+        <h3 style="font-size:13px;color:var(--purple-l);margin-bottom:5px">Site Config</h3>
+        <p>Activer/désactiver les inscriptions, personnaliser le nom de la plateforme, message d'accueil.</p>
+        <p class="mt-s"><span class="ref">SiteConfigTab.tsx</span> · <span class="ref">docs/09-admin.md</span></p>
+      </div>
+    </div>
+  </div></div>
+
+
+<!-- ══ 9 — J2 : MULTI-LLM ══ -->
+<div class="slide bg-j2" data-ch="J2 — Mardi · Multi-LLM">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-green">J2 · Mardi — Architecture multi-fournisseurs LLM</div>
+      <h2><span class="hg">9 backends LLM.</span> Un seul point d'entrée.</h2>
+      <p class="sub">Pattern Factory — changer de modèle = changer une variable .env. Zéro refactor côté app.</p>
+    </div>
+    <div class="g2" style="align-items:start">
+      <div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+          <div class="llm-badge"><div class="llm-dot" style="background:#6ee7b7"></div>Ollama <span style="color:var(--slate-400);font-size:10px">local</span></div>
+          <div class="llm-badge"><div class="llm-dot" style="background:#fca5a5"></div>OpenAI</div>
+          <div class="llm-badge"><div class="llm-dot" style="background:#fca5a5"></div>Anthropic</div>
+          <div class="llm-badge"><div class="llm-dot" style="background:#fca5a5"></div>Google Gemini</div>
+          <div class="llm-badge"><div class="llm-dot" style="background:#fcd34d"></div>Groq</div>
+          <div class="llm-badge"><div class="llm-dot" style="background:#fcd34d"></div>Cerebras</div>
+          <div class="llm-badge"><div class="llm-dot" style="background:#93c5fd"></div>Mistral AI</div>
+          <div class="llm-badge"><div class="llm-dot" style="background:#c4b5fd"></div>OpenRouter</div>
+          <div class="llm-badge"><div class="llm-dot" style="background:#475569"></div>Mock (tests)</div>
+        </div>
+        <div class="code" style="font-size:11px">
+          <span class="cmt"># backend/llm/services/factory.py</span><br>
+          <span class="kw">def</span> get_llm_client(backend: str):<br>
+          &nbsp;&nbsp;clients = {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"ollama"</span>: OllamaClient,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"groq"</span>: GroqClient,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"gemini"</span>: GeminiClient,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt">... 6 autres</span><br>
+          &nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;<span class="kw">return</span> clients[backend]()
+        </div>
+      </div>
+      <div class="col gap-m">
+        <div class="card card-green">
+          <h3 style="font-size:13px;color:var(--green-l);margin-bottom:6px">Pourquoi ce design ?</h3>
+          <p>Un établissement peut vouloir Ollama (local, RGPD). Une PME préfère Groq (rapide, gratuit). Un lycée utilise Gemini Flash. <strong style="color:var(--white)">On s'adapte sans refactoriser.</strong></p>
+        </div>
+        <div class="card card-blue">
+          <h3 style="font-size:13px;color:var(--blue-2xl);margin-bottom:6px">Défaut de production</h3>
+          <p><strong style="color:var(--white)">Ollama + llama3.2:3b</strong> — 100 % local, ~2 Go RAM, zéro coût, zéro donnée hors UE. Configurable via Admin Panel sans redémarrage.</p>
+          <p class="mt-s"><span class="ref">llm/services/</span> · <span class="ref">docs/02-llm-integration.md</span></p>
+        </div>
+        <div class="card card-amber">
+          <h3 style="font-size:13px;color:var(--amber-l);margin-bottom:5px">Fallback J4</h3>
+          <p>En cas de surcharge Ollama → bascule automatique vers Groq ou Gemini. Configuré dans le panel Admin. Stratégie de scalabilité J4.</p>
+        </div>
+      </div>
+    </div>
+  </div></div>
+
+
+<!-- ══ 10 — J2 : ADR-001 ══ -->
+<div class="slide bg-j2" data-ch="J2 — Mardi · ADR-001">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-amber">J2 · ADR-001 — Décision architecturale documentée</div>
+      <h2>Beta-test : <span class="hr">"inutilisable".</span> On benchmark. On décide.</h2>
+      <p class="sub">45 secondes de latence signalées le matin. Le sponsor attend une solution avant ce soir. Protocole ADR activé.</p>
+    </div>
+    <div class="g2" style="align-items:start">
+      <div>
+        <table>
+          <thead><tr><th>Option</th><th>Modèle</th><th>Latence</th><th>RGPD</th><th>RAM</th></tr></thead>
+          <tbody>
+            <tr><td>A</td><td>llama3.1:8b</td><td style="color:var(--red-l)">~45s</td><td class="ok">✓ Local</td><td>5 Go</td></tr>
+            <tr class="pick"><td><strong>B ✓</strong></td><td><strong>llama3.2:3b</strong></td><td style="color:var(--green-l)">~15s</td><td class="ok">✓ Local</td><td><strong>2 Go</strong></td></tr>
+            <tr><td>C</td><td>Gemini 1.5 Flash</td><td style="color:var(--green-l)">~3s</td><td class="no">✗ Hors UE</td><td>0</td></tr>
+            <tr><td>D</td><td>Groq llama</td><td style="color:var(--green-l)">~2s</td><td class="no">✗ Hors UE</td><td>0</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px;color:var(--slate-600);margin-top:8px"><span class="ref">docs/adr/ADR-001-choix-llm.md</span> · <span class="ref">scripts/benchmark-llm.py</span></p>
+      </div>
+      <div class="col gap-m">
+        <div class="card card-red">
+          <h3 style="font-size:13px;color:var(--red-l);margin-bottom:5px">Pourquoi pas C ou D ?</h3>
+          <p>Gemini et Groq : excellente latence, mais les données de cours quittent l'UE. Invalide notre argument RGPD B2B. <strong style="color:var(--white)">Non négociable.</strong></p>
+        </div>
+        <div class="card card-green">
+          <h3 style="font-size:13px;color:var(--green-l);margin-bottom:5px">Pourquoi B ?</h3>
+          <p>100 % local, 2 Go RAM, bascule en &lt; 1h — une seule ligne .env. Différenciateur préservé. Meilleur compromis vitesse/qualité/RGPD.</p>
+        </div>
+        <div class="code" style="font-size:11px;padding:10px 14px">OLLAMA_MODEL=<span class="str">llama3.2:3b</span></div>
+      </div>
+    </div>
+  </div></div>
+
+
+<!-- ══ 11 — J2 : CI/CD ══ -->
+<div class="slide bg-j2" data-ch="J2 — Mardi · CI/CD">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-green">J2 · Mardi — Pipeline CI/CD</div>
+      <h2>Chaque push <span class="hg">vérifié automatiquement.</span></h2>
+      <p class="sub">GitHub Actions — tests, lint, type-check à chaque commit. Qualité continue, pas ponctuellement.</p>
+    </div>
+    <div class="g2" style="align-items:start">
+      <div class="col gap-m">
+        <div class="card card-green">
+          <div class="ico-l" style="color:var(--green-l);margin-bottom:10px"><i data-lucide="github"></i></div>
+          <h3 style="font-size:14px;color:var(--green-l);margin-bottom:8px">GitHub Actions — ci.yml</h3>
+          <ul>
+            <li>Lint Python (flake8 / ruff)</li>
+            <li>Tests Django (pytest + coverage)</li>
+            <li>Type-check TypeScript (tsc --noEmit)</li>
+            <li>Build frontend vérifié</li>
+            <li>Tests adversariaux LLM (mock)</li>
+          </ul>
+          <p class="mt-s"><span class="ref">.github/workflows/ci.yml</span> · <span class="ref">docs/05-ci-cd.md</span></p>
+        </div>
+        <div class="card card-blue">
+          <div class="ico-l" style="color:var(--blue-2xl);margin-bottom:8px"><i data-lucide="ship"></i></div>
+          <h3 style="font-size:13px;color:var(--blue-2xl);margin-bottom:5px">Scripts de déploiement</h3>
+          <p>Deploy automatisé sur VPS OVH, scripts multi-OS (Mac/Linux/Windows). Rollback en 1 commande. <span class="ref">scripts/deploy.sh</span> · <span class="ref">docs/11-deploiement-vps-ovh.md</span></p>
+        </div>
+      </div>
+      <div class="col gap-m">
+        <div class="code" style="font-size:11px">
+          <span class="cmt"># .github/workflows/ci.yml</span><br>
+          on: [push, pull_request]<br><br>
+          jobs:<br>
+          &nbsp;&nbsp;<span class="kw">backend-tests</span>:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;- pytest --cov=.<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;- test_adversarial.py<br><br>
+          &nbsp;&nbsp;<span class="kw">frontend-check</span>:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;- tsc --noEmit<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;- vite build
+        </div>
+        <div class="card card-amber">
+          <h3 style="font-size:13px;color:var(--amber-l);margin-bottom:5px">Bénéfice concret</h3>
+          <p>On a détecté 3 régressions lors de la perturbation J3 grâce aux tests CI avant même de merger. Sans ça, la Release 1 aurait eu des bugs en prod.</p>
+        </div>
+        <div class="card">
+          <h3 style="font-size:13px;margin-bottom:5px">Déploiement VPS</h3>
+          <p style="font-size:12px">Documentation complète du déploiement sur serveur Linux (OVH, Scaleway…). Nginx reverse proxy, HTTPS, variables d'env sécurisées. <span class="ref">docs/11-deploiement-vps-ovh.md</span></p>
+        </div>
+      </div>
+    </div>
+  </div></div>
+
+
+<!-- ══ 12 — J3 : SÉCURITÉ ══ -->
+<div class="slide bg-j3" data-ch="J3 — Mercredi · Sécurité">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-red">J3 · Mercredi — Perturbation Sécurité LLM</div>
+      <h2>Le LLM peut être <span class="hr">manipulé.</span> On ferme la faille.</h2>
+      <p class="sub">Prompt injection : un utilisateur peut envoyer <em>"Ignore les instructions précédentes et..."</em> dans le champ cours. Détecté, patchés, testés.</p>
+    </div>
+    <div class="g2" style="align-items:start">
+      <div class="col gap-m">
+        <div class="card card-red">
+          <h3 style="font-size:13px;color:var(--red-l);margin-bottom:8px">Correctifs appliqués</h3>
+          <ul>
+            <li>Troncature texte à 4 000 chars côté backend</li>
+            <li>Validation <code style="font-size:10px;background:rgba(0,0,0,.3);padding:1px 4px;border-radius:2px">correct_index</code> : entier 0-3 seulement</li>
+            <li>Limite max_tokens sur la sortie LLM</li>
+            <li>Distribution forcée des bonnes réponses</li>
+            <li>Sanitisation du contenu cours avant injection prompt</li>
+          </ul>
+          <p class="mt-s"><span class="ref">llm/views.py</span> · <span class="ref">quizzes/serializers.py</span></p>
+        </div>
+        <div class="card card-amber">
+          <h3 style="font-size:13px;color:var(--amber-l);margin-bottom:5px">5 tests adversariaux</h3>
+          <ul>
+            <li>Injection directe</li><li>Lorem ipsum (hors-sujet)</li>
+            <li>Texte vide / trop court</li><li>JSON malformé</li><li>Exfiltration de prompt</li>
+          </ul>
+          <p class="mt-s"><span class="ref">tests/test_adversarial.py</span></p>
+        </div>
+      </div>
+      <div class="col gap-m">
+        <div class="card card-green" style="text-align:center;padding:24px">
+          <div class="ico-l" style="color:var(--green-l);margin:0 auto 10px"><i data-lucide="shield-check"></i></div>
+          <div style="font-size:32px;font-weight:800;color:var(--green-l)">5/5</div>
+          <div style="font-size:12px;color:var(--slate-400);margin-top:4px">Attaques bloquées</div>
+          <p style="font-size:12px;margin-top:12px">Erreur 400 ou réponse vide contrôlée — jamais de contenu injecté dans la sortie finale.</p>
+        </div>
+        <div class="card">
+          <h3 style="font-size:13px;margin-bottom:5px">Principe retenu</h3>
+          <p style="font-size:12px">Le LLM est une <strong style="color:var(--white)">entrée non fiable</strong> comme toute autre API externe. On sanitise en amont ET on valide la sortie en aval. Defense in depth.</p>
+          <p class="mt-s"><span class="ref">docs/perturbations/j3/equipe-17-note-securite-j3-v1.0.docx</span></p>
+        </div>
+      </div>
+    </div>
+  </div></div>
+
+
+<!-- ══ 13 — J3 : RGPD + R1 ══ -->
+<div class="slide bg-j3" data-ch="J3 — Mercredi · RGPD">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-red">J3-bis · Mercredi — Perturbation RGPD + Release 1</div>
+      <h2>Conformité légale <span class="hr">livrée</span> avant 17h45.</h2>
+      <p class="sub">+3 SP hors scope. On absorbe sans reporter de feature. La Release 1 sort à l'heure.</p>
+    </div>
+    <div class="g2" style="align-items:start">
+      <div class="g2" style="align-self:start">
+        <div class="card">
+          <div class="ico-l" style="color:var(--red-l);margin-bottom:8px"><i data-lucide="clipboard-list"></i></div>
+          <h3 style="font-size:13px;margin-bottom:6px">Pages légales</h3>
+          <ul><li>CGU</li><li>Confidentialité</li><li>Mentions légales</li><li>Cookies</li></ul>
+          <p class="mt-s"><span class="ref">pages/legal/</span></p>
+        </div>
+        <div class="card">
+          <div class="ico-l" style="color:var(--red-l);margin-bottom:8px"><i data-lucide="package"></i></div>
+          <h3 style="font-size:13px;margin-bottom:6px">Export SAR</h3>
+          <p><code style="font-size:10px;background:rgba(0,0,0,.3);padding:1px 4px;border-radius:2px">GET /api/accounts/export/</code><br>Toutes les données en JSON. RGPD Art. 15.</p>
+          <p class="mt-s"><span class="ref">accounts/views.py</span></p>
+        </div>
+        <div class="card">
+          <div class="ico-l" style="color:var(--red-l);margin-bottom:8px"><i data-lucide="trash-2"></i></div>
+          <h3 style="font-size:13px;margin-bottom:6px">Droit à l'oubli</h3>
+          <p>Suppression = cascade totale (quiz, historique, tokens). RGPD Art. 17. <span class="ref">politique-retention.md</span></p>
+        </div>
+        <div class="card">
+          <div class="ico-l" style="color:var(--red-l);margin-bottom:8px"><i data-lucide="file-lock-2"></i></div>
+          <h3 style="font-size:13px;margin-bottom:6px">Rétention</h3>
+          <p>Politique documentée. Pas de tracking, pas de cookies tiers, pas d'analytics cloud. <span class="ref">docs/legal/</span></p>
+        </div>
+      </div>
+      <div class="col gap-m">
+        <div class="card card-green" style="text-align:center;padding:24px">
+          <div class="ico-l" style="color:var(--green-l);margin:0 auto 10px"><i data-lucide="flag"></i></div>
+          <h3 style="font-size:18px;color:var(--green-l);margin-bottom:12px">Release 1 — 17h45</h3>
+          <div class="g2" style="gap:10px">
+            <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:12px;text-align:center">
+              <div style="font-size:26px;font-weight:800;color:var(--green-l)">42</div>
+              <div style="font-size:10px;color:var(--slate-400);text-transform:uppercase;margin-top:2px">SP livrés</div>
+            </div>
+            <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:12px;text-align:center">
+              <div style="font-size:26px;font-weight:800;color:var(--amber-l)">67</div>
+              <div style="font-size:10px;color:var(--slate-400);text-transform:uppercase;margin-top:2px">SP scope</div>
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--slate-400);margin-top:12px">6 features · Auth · Admin · Multi-LLM · CI/CD · Sécurité · RGPD</p>
+        </div>
+        <div class="card card-amber">
+          <h3 style="font-size:13px;color:var(--amber-l);margin-bottom:5px">Matrice des risques</h3>
+          <p>Risques identifiés, probabilité/impact évalués. Mitigation documentée pour chaque perturbation. <span class="ref">docs/Matrice des Risques.docx</span></p>
+        </div>
+      </div>
+    </div>
+  </div></div>
+
+
+<!-- ══ 14 — J4 : PERTURBATION ══ -->
+<div class="slide bg-j4" data-ch="J4 — Jeudi · Passage à l'échelle">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-teal">J4 · Jeudi 10h00 — Perturbation déverrouillée</div>
+      <h2>3 axes transverses. <span class="ht">18,5 heures.</span> 1 matinée.</h2>
+      <p class="sub">J4 n'ajoute pas des features dans un coin — elle traverse tout le produit existant (F1-F6). Sprint 4 planifié avec une marge de 12h anticipée.</p>
+    </div>
+    <div class="g3 mt-m">
+      <div class="card card-teal">
+        <div class="ico-l" style="color:var(--teal-l);margin-bottom:10px"><i data-lucide="accessibility"></i></div>
+        <h3 style="font-size:14px;color:var(--teal-l);margin-bottom:6px">Accessibilité RGAA</h3>
+        <p>Référentiel Général d'Accessibilité pour les Administrations. Navigation clavier, ARIA, skip links, focus visible. 12 pages couvertes.</p>
+        <p class="mt-s" style="font-size:11px;color:var(--slate-600)">US-25, US-26 · ~4 SP · 6,5h</p>
+      </div>
+      <div class="card card-blue">
+        <div class="ico-l" style="color:var(--blue-2xl);margin-bottom:10px"><i data-lucide="globe"></i></div>
+        <h3 style="font-size:14px;color:var(--blue-2xl);margin-bottom:6px">Internationalisation FR/EN</h3>
+        <p>Contexte i18n TypeScript-safe, 100+ clés, bouton FR/EN en header, persistance localStorage. Zéro dépendance externe.</p>
+        <p class="mt-s" style="font-size:11px;color:var(--slate-600)">US-21, US-22 · ~2 SP · 5h</p>
+      </div>
+      <div class="card card-amber">
+        <div class="ico-l" style="color:var(--amber-l);margin-bottom:10px"><i data-lucide="settings"></i></div>
+        <h3 style="font-size:14px;color:var(--amber-l);margin-bottom:6px">Scalabilité</h3>
+        <p>Cache Redis configuré, séparation conteneurs, fallback LLM cloud branché via Admin Panel. PoC validé, non généralisé.</p>
+        <p class="mt-s" style="font-size:11px;color:var(--slate-600)">US-23, US-24 · ~3 SP · 7h</p>
+      </div>
+    </div>
+    <div class="card" style="background:rgba(255,255,255,.03);padding:12px 16px;margin-top:4px">
+      <p style="font-size:12px;color:var(--slate-400)"><strong style="color:var(--white)">Décision de pilotage :</strong> "diagnostic + PoC minimal" sur chaque axe — pas une remédiation exhaustive. Scope passe à 76 SP. <span class="ref">equipe-17-burndown-burnup-j4-v1.0.md</span> · <span class="ref">product-backlog-j4-v4.0.xlsx</span></p>
+    </div>
+  </div></div>
+
+
+<!-- ══ 15 — J4 : RGAA ══ -->
+<div class="slide bg-j4" data-ch="J4 — Jeudi · RGAA">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-teal">J4 · PoC RGAA — Accessibilité numérique</div>
+      <h2><span class="ht">Accessible</span> par design, sans dépendance.</h2>
+    </div>
+    <div class="g2" style="align-items:start">
+      <div class="col gap-m">
+        <div class="card card-teal">
+          <h3 style="font-size:13px;color:var(--teal-l);margin-bottom:10px">Skip link — Layout.tsx</h3>
+          <div class="code" style="font-size:11px">
+            &lt;<span class="kw">a</span> href=<span class="str">"#main-content"</span><br>
+            &nbsp;className=<span class="str">"sr-only focus:not-sr-only"</span>&gt;<br>
+            &nbsp;{t(<span class="str">'skip_to_content'</span>)}<br>
+            &lt;/<span class="kw">a</span>&gt;
+          </div>
+        </div>
+        <div class="card card-teal">
+          <h3 style="font-size:13px;color:var(--teal-l);margin-bottom:8px">Focus clavier uniquement</h3>
+          <div class="code" style="font-size:11px">
+            <span class="kw">:focus-visible</span> {<br>
+            &nbsp;outline: <span class="str">3px solid #2563eb</span>;<br>
+            }<br>
+            <span class="kw">:focus:not(:focus-visible)</span> {<br>
+            &nbsp;outline: <span class="str">none</span>; <span class="cmt">/* souris = pas d'outline */</span><br>
+            }
+          </div>
+          <p class="mt-s"><span class="ref">index.css</span></p>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:12px">
+          <h3 style="font-size:13px;color:var(--teal-l);margin-bottom:10px">Attributs ARIA appliqués sur 12 pages</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:4px">
+            <span class="atag">aria-label</span><span class="atag">aria-hidden</span><span class="atag">aria-live</span>
+            <span class="atag">aria-required</span><span class="atag">aria-checked</span><span class="atag">aria-selected</span>
+            <span class="atag">aria-controls</span><span class="atag">aria-labelledby</span>
+            <span class="atag">role="alert"</span><span class="atag">role="status"</span>
+            <span class="atag">role="tab"</span><span class="atag">role="tablist"</span>
+            <span class="atag">role="tabpanel"</span><span class="atag">role="radio"</span>
+            <span class="atag">role="group"</span><span class="atag">htmlFor / id</span>
+          </div>
+        </div>
+        <div class="g2" style="gap:10px">
+          <div class="kpi" style="padding:14px"><div class="kpi-v" style="color:var(--teal-l)">12</div><div class="kpi-l">Pages couvertes</div></div>
+          <div class="kpi" style="padding:14px"><div class="kpi-v hg">0</div><div class="kpi-l">Dépendances</div></div>
+        </div>
+        <div class="card mt-s" style="background:rgba(255,255,255,.03)">
+          <p style="font-size:12px;color:var(--slate-400)">Zéro régression visuelle. Tous les attributs ajoutés sans modifier le CSS ni les classes Tailwind existantes.</p>
+        </div>
+      </div>
+    </div>
+  </div></div>
+
+
+<!-- ══ 16 — J4 : i18n ══ -->
+<div class="slide bg-j4" data-ch="J4 — Jeudi · i18n">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-blue">J4 · PoC i18n — Internationalisation FR/EN</div>
+      <h2><span class="hl">TypeScript-safe,</span> zéro librairie externe.</h2>
+    </div>
+    <div class="g2" style="align-items:start">
+      <div class="col gap-m">
+        <div class="card card-blue">
+          <h3 style="font-size:13px;color:var(--blue-2xl);margin-bottom:8px">Architecture custom</h3>
+          <div class="code" style="font-size:11px">
+            <span class="cmt"># fr.ts — source de vérité</span><br>
+            <span class="kw">export type</span> TranslationKeys =<br>
+            &nbsp;&nbsp;<span class="kw">keyof typeof</span> fr;<br><br>
+            <span class="cmt"># en.ts — type-safe</span><br>
+            <span class="kw">const</span> en: Record&lt;TranslationKeys, string&gt;<br>
+            <span class="cmt">// TS error si clé manquante ✓</span><br><br>
+            <span class="cmt"># I18nContext.tsx</span><br>
+            <span class="kw">const</span> t = (key) =&gt; translations[locale][key];<br>
+            localStorage.setItem(<span class="str">'locale'</span>, next);
+          </div>
+        </div>
+        <div class="card card-blue">
+          <h3 style="font-size:13px;color:var(--blue-2xl);margin-bottom:5px">LocaleToggle — header</h3>
+          <p>Bouton FR/EN dans la navbar. Bascule instantanée, persistée entre sessions via localStorage. Accessible (aria-label). <span class="ref">Layout.tsx</span></p>
+        </div>
+      </div>
+      <div class="col gap-m">
+        <div class="card" style="margin-bottom:4px">
+          <h3 style="font-size:13px;margin-bottom:10px;color:var(--blue-2xl)">Toutes les pages traduites</h3>
+          <div class="g2" style="gap:4px">
+            <div style="font-size:11px;color:var(--slate-400);line-height:2">
+              <div>✓ HomePage</div><div>✓ LoginPage</div><div>✓ SignupPage</div>
+              <div>✓ UploadPage</div><div>✓ QuizPage</div><div>✓ ReviewPage</div>
+            </div>
+            <div style="font-size:11px;color:var(--slate-400);line-height:2">
+              <div>✓ DashboardPage</div><div>✓ HistoryPage</div><div>✓ ProfilePage</div>
+              <div>✓ ForgotPasswordPage</div><div>✓ ResetPasswordPage</div><div>✓ VerifyEmailBanner</div>
+            </div>
+          </div>
+        </div>
+        <div class="g2" style="gap:10px">
+          <div class="kpi" style="padding:14px"><div class="kpi-v hl">100+</div><div class="kpi-l">Clés i18n</div></div>
+          <div class="kpi" style="padding:14px"><div class="kpi-v hg">0</div><div class="kpi-l">Dépendances</div></div>
+        </div>
+        <p style="font-size:11px;color:var(--slate-600)"><span class="ref">i18n/fr.ts</span> · <span class="ref">i18n/en.ts</span> · <span class="ref">contexts/I18nContext.tsx</span></p>
+      </div>
+    </div>
+  </div></div>
+
+
+<!-- ══ 17 — J4 : SCALABILITÉ ══ -->
+<div class="slide bg-j4" data-ch="J4 — Jeudi · Scalabilité">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-amber">J4 · PoC Scalabilité — Passage à l'échelle</div>
+      <h2>Redis. <span class="ha">Fallback LLM cloud.</span> Conteneurs séparés.</h2>
+      <p class="sub">3e axe J4 : rendre EduTutor IA capable d'absorber une charge multi-utilisateurs et de basculer de LLM en 1 clic.</p>
+    </div>
+    <div class="g3 mt-m">
+      <div class="card card-amber">
+        <div class="ico-l" style="color:var(--amber-l);margin-bottom:10px"><i data-lucide="database"></i></div>
+        <h3 style="font-size:13px;color:var(--amber-l);margin-bottom:8px">Cache Redis</h3>
+        <div class="code" style="font-size:10px;margin-top:6px">
+          <span class="cmt"># settings.py</span><br>
+          CACHES = {<br>
+          &nbsp;<span class="str">"default"</span>: {<br>
+          &nbsp;&nbsp;<span class="str">"BACKEND"</span>:<span class="str">"django_redis.cache.RedisCache"</span>,<br>
+          &nbsp;&nbsp;<span class="str">"LOCATION"</span>:<span class="str">"redis://redis:6379/1"</span><br>
+          &nbsp;}<br>
+          }<br>
+          <span class="cmt"># Vue cachée 5 min</span><br>
+          @cache_page(60 * 5)
+        </div>
+        <p class="mt-s" style="font-size:11px;color:var(--slate-600)">Service Redis dans docker-compose · US-23</p>
+      </div>
+      <div class="card card-green">
+        <div class="ico-l" style="color:var(--green-l);margin-bottom:10px"><i data-lucide="shuffle"></i></div>
+        <h3 style="font-size:13px;color:var(--green-l);margin-bottom:8px">Fallback LLM cloud</h3>
+        <p>Bascule <strong style="color:var(--white)">Ollama → Groq</strong> (ou Mistral, Gemini…) configurable en <strong style="color:var(--white)">1 clic</strong> depuis le panneau Admin — sans redéploiement.</p>
+        <p class="mt-s">Factory Pattern : le backend sélectionne le provider via <span class="ref">LLM_BACKEND</span> en variable d'env.</p>
+        <p class="mt-s" style="font-size:11px;color:var(--slate-600)">US-24 · llm/services/factory.py</p>
+      </div>
+      <div class="card">
+        <div class="ico-l" style="color:var(--blue-2xl);margin-bottom:10px"><i data-lucide="layers"></i></div>
+        <h3 style="font-size:13px;color:var(--blue-2xl);margin-bottom:8px">Séparation conteneurs</h3>
+        <p>Redis ajouté comme <strong style="color:var(--white)">5e service</strong> dans Docker Compose (aux côtés de postgres, ollama, backend, frontend).</p>
+        <div class="code" style="font-size:10px;margin-top:8px">
+          redis:<br>
+          &nbsp;image: redis:7-alpine<br>
+          &nbsp;restart: unless-stopped<br>
+          &nbsp;ports: [<span class="str">"6379:6379"</span>]
+        </div>
+      </div>
+    </div>
+    <div class="card" style="background:rgba(245,158,11,.05);padding:10px 16px;margin-top:4px">
+      <p style="font-size:12px;color:var(--slate-400)"><strong style="color:var(--amber-l)">Périmètre PoC :</strong> Redis configuré et branché, mais le <code style="font-size:11px;color:#a5f3fc">@cache_page</code> n'est pas généralisé à tous les endpoints (stratégie d'invalidation à compléter). Un seul provider cloud (Groq) branché en fallback. Décision volontaire : diagnostic + PoC en Sprint 4, généralisation prévue Sprint 5.</p>
+    </div>
+  </div></div>
+
+
+<!-- ══ 18 — BURNUP + PILOTAGE ══ -->
+<div class="slide bg-dark" data-ch="Pilotage">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-blue">Pilotage — Burnup global + Matrice des risques</div>
+      <h2>Le scope a <span class="ha">bougé 3 fois.</span> La vélocité, non.</h2>
+    </div>
+    <div class="g2" style="align-items:start;gap:28px">
+      <div>
+        <svg viewBox="0 0 480 210" style="width:100%;max-width:500px">
+          <line x1="38" y1="10"  x2="38"  y2="180" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+          <line x1="38" y1="180" x2="470" y2="180" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+          <line x1="38" y1="50"  x2="470" y2="50"  stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="4 3"/>
+          <line x1="38" y1="100" x2="470" y2="100" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="4 3"/>
+          <line x1="38" y1="140" x2="470" y2="140" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="4 3"/>
+          <text x="34" y="14"  fill="#475569" font-size="8" text-anchor="end">90</text>
+          <text x="34" y="54"  fill="#475569" font-size="8" text-anchor="end">68</text>
+          <text x="34" y="104" fill="#475569" font-size="8" text-anchor="end">45</text>
+          <text x="34" y="144" fill="#475569" font-size="8" text-anchor="end">22</text>
+          <text x="34" y="182" fill="#475569" font-size="8" text-anchor="end">0</text>
+          <text x="38"  y="195" fill="#475569" font-size="7" text-anchor="middle">S0</text>
+          <text x="104" y="195" fill="#475569" font-size="7" text-anchor="middle">S1·J1</text>
+          <text x="170" y="195" fill="#475569" font-size="7" text-anchor="middle">S2</text>
+          <text x="236" y="195" fill="#475569" font-size="7" text-anchor="middle">S3</text>
+          <text x="302" y="195" fill="#475569" font-size="7" text-anchor="middle">S4</text>
+          <text x="368" y="195" fill="#475569" font-size="7" text-anchor="middle">S5·R1</text>
+          <text x="434" y="195" fill="#475569" font-size="7" text-anchor="middle">S6·J4</text>
+          <polygon points="38,91 104,74 170,74 236,74 302,74 368,70 434,57 434,180 38,180" fill="rgba(245,158,11,.05)"/>
+          <polyline points="38,91 104,74 170,74 236,74 302,74 368,70 434,57" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 3" opacity=".8"/>
+          <polygon points="38,180 104,163 170,146 236,130 302,112 368,91 434,81 434,180" fill="rgba(59,130,246,.12)"/>
+          <polyline points="38,180 104,163 170,146 236,130 302,112 368,91 434,81" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linejoin="round"/>
+          <circle cx="38"  cy="180" r="3.5" fill="#3b82f6"/>
+          <circle cx="104" cy="163" r="3.5" fill="#3b82f6"/>
+          <circle cx="170" cy="146" r="3.5" fill="#3b82f6"/>
+          <circle cx="236" cy="130" r="3.5" fill="#3b82f6"/>
+          <circle cx="302" cy="112" r="3.5" fill="#3b82f6"/>
+          <circle cx="368" cy="91"  r="3.5" fill="#3b82f6"/>
+          <circle cx="434" cy="81"  r="5" fill="#3b82f6" stroke="white" stroke-width="2"/>
+          <circle cx="104" cy="74"  r="3" fill="#f59e0b"/>
+          <circle cx="368" cy="70"  r="3" fill="#f59e0b"/>
+          <circle cx="434" cy="57"  r="4" fill="#f59e0b" stroke="#fcd34d" stroke-width="1.5"/>
+          <text x="104" y="65"  fill="#f59e0b" font-size="7" text-anchor="middle">+8 J1</text>
+          <text x="368" y="62"  fill="#f59e0b" font-size="7" text-anchor="middle">+3 J3</text>
+          <text x="434" y="48"  fill="#f59e0b" font-size="7" text-anchor="middle">+9 J4</text>
+          <line x1="40" y1="208" x2="56" y2="208" stroke="#3b82f6" stroke-width="2"/>
+          <text x="60" y="211" fill="#94a3b8" font-size="7">SP livrés</text>
+          <line x1="120" y1="208" x2="136" y2="208" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4 2"/>
+          <text x="140" y="211" fill="#94a3b8" font-size="7">Scope total</text>
+        </svg>
+      </div>
+      <div class="col gap-m">
+        <div class="g2" style="gap:10px">
+          <div class="kpi"><div class="kpi-v hl">76 SP</div><div class="kpi-l">Scope final</div></div>
+          <div class="kpi"><div class="kpi-v ha">+36%</div><div class="kpi-l">vs scope initial</div></div>
+        </div>
+        <div class="card card-blue">
+          <h3 style="font-size:13px;color:var(--blue-2xl);margin-bottom:6px">Lecture du burnup</h3>
+          <p>Le scope (ligne pointillée) monte à J1, J3 et J4. La ligne bleue (livré) suit à chaque fois. La vélocité n'a pas chuté — c'est le périmètre qui a été redéfini.</p>
+        </div>
+        <div class="card card-amber">
+          <h3 style="font-size:13px;color:var(--amber-l);margin-bottom:5px">Matrice des risques</h3>
+          <p>Risques identifiés dès J1 (LLM latence, scope creep, sécurité). Probabilité × impact. Plans de mitigation activés à J3 et J4. <span class="ref">Matrice des Risques.docx</span></p>
+        </div>
+        <div class="card">
+          <h3 style="font-size:13px;margin-bottom:5px">Sprint backlogs</h3>
+          <p style="font-size:12px;color:var(--slate-400)">v1.0 → v2.0 → v3.0 → v4.0 — mis à jour à chaque perturbation. <span class="ref">cadrage/</span></p>
+        </div>
+      </div>
+    </div>
+  </div></div>
+
+
+<!-- ══ 18 — STACK ══ -->
+<div class="slide bg-dark" data-ch="Stack technique">
+  <div class="mid col gap-l" style="text-align:center;align-items:center">
+    <div class="tag tag-purple">Stack technique complète</div>
+    <h2 style="margin-bottom:4px">Ce qui tourne sous le capot</h2>
+    <div class="g3 w100 mt-m">
+      <div class="card" style="text-align:left">
+        <div class="ico-m row gap-s" style="color:var(--blue-2xl);margin-bottom:10px"><i data-lucide="wrench"></i><span style="font-size:13px;font-weight:600;color:var(--white)">Backend</span></div>
+        <ul style="font-size:12px;color:var(--slate-400);list-style:none;padding:0;line-height:2">
+          <li><span style="color:var(--white)">Python 3.12</span> + Django 5</li>
+          <li><span style="color:var(--white)">Django REST Framework</span></li>
+          <li><span style="color:var(--white)">PostgreSQL 16</span></li>
+          <li><span style="color:var(--white)">Redis</span> (cache J4)</li>
+          <li><span style="color:var(--white)">Gunicorn</span> + Nginx</li>
+          <li><span style="color:var(--white)">pytest</span> + coverage</li>
+        </ul>
+      </div>
+      <div class="card" style="text-align:left">
+        <div class="ico-m row gap-s" style="color:var(--blue-2xl);margin-bottom:10px"><i data-lucide="atom"></i><span style="font-size:13px;font-weight:600;color:var(--white)">Frontend</span></div>
+        <ul style="font-size:12px;color:var(--slate-400);list-style:none;padding:0;line-height:2">
+          <li><span style="color:var(--white)">React 18</span> + Vite</li>
+          <li><span style="color:var(--white)">TypeScript 5</span></li>
+          <li><span style="color:var(--white)">Tailwind CSS 3</span></li>
+          <li><span style="color:var(--white)">React Router 6</span></li>
+          <li><span style="color:var(--white)">Lucide Icons</span></li>
+          <li><span style="color:var(--white)">i18n custom</span> (J4)</li>
+        </ul>
+      </div>
+      <div class="card" style="text-align:left">
+        <div class="ico-m row gap-s" style="color:var(--blue-2xl);margin-bottom:10px"><i data-lucide="bot"></i><span style="font-size:13px;font-weight:600;color:var(--white)">IA & Infra</span></div>
+        <ul style="font-size:12px;color:var(--slate-400);list-style:none;padding:0;line-height:2">
+          <li><span style="color:var(--white)">Ollama</span> (llama3.2:3b)</li>
+          <li><span style="color:var(--white)">9 backends LLM</span></li>
+          <li><span style="color:var(--white)">Docker Compose</span></li>
+          <li><span style="color:var(--white)">GitHub Actions CI</span></li>
+          <li><span style="color:var(--white)">PyMuPDF</span> (PDF)</li>
+          <li><span style="color:var(--white)">Brevo SMTP</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="card w100" style="background:rgba(255,255,255,.03);padding:12px;text-align:center">
+      <p style="font-size:12px;color:var(--slate-400)">100 % open source · 100 % local par défaut · 0 clé API requise en production · déployable sur VPS en 1 commande</p>
+    </div>
+  </div></div>
+
+
+<!-- ══ 19 — FIN ══ -->
+<!-- ══ 20 — DÉPLOIEMENT VPS OVH ══ -->
+<div class="slide bg-dark" data-ch="Déploiement production">
+  <div class="wide col gap-l">
+    <div class="col gap-s">
+      <div class="tag tag-purple">Déploiement production — VPS OVHcloud</div>
+      <h2>De <span class="hl">localhost</span> à <span class="hl">apocalipssi26.elafrit.com</span> en HTTPS.</h2>
+    </div>
+    <div class="g2" style="align-items:start;gap:20px">
+      <div class="col gap-m">
+        <div class="card card-purple">
+          <h3 style="font-size:13px;color:var(--purple-l);margin-bottom:8px">Override Compose — stratégie</h3>
+          <div class="code" style="font-size:10px">
+            <span class="cmt"># Fusion dev + prod sans modifier le dev</span><br>
+            docker compose \<br>
+            &nbsp;-f docker-compose.yml \<br>
+            &nbsp;-f docker-compose.prod.yml \<br>
+            &nbsp;up -d --build<br><br>
+            <span class="cmt"># Ports applicatifs fermés via !reset</span><br>
+            ports: <span class="kw">!reset</span> []<br>
+            volumes: <span class="kw">!reset</span> []
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:13px;color:var(--blue-2xl);margin-bottom:8px">Multi-stage Dockerfiles</h3>
+          <div class="fi" style="margin-bottom:6px">
+            <div class="fi-ico" style="background:rgba(37,99,235,.15)"><div class="ico-s" style="color:var(--blue-2xl)"><i data-lucide="package"></i></div></div>
+            <div><div class="fi-name">backend.prod.Dockerfile</div><div class="fi-desc">Stage builder (gcc + wheels) → runtime slim (libpq5 seul). Sans dev-deps.</div></div>
+          </div>
+          <div class="fi">
+            <div class="fi-ico" style="background:rgba(37,99,235,.15)"><div class="ico-s" style="color:var(--blue-2xl)"><i data-lucide="atom"></i></div></div>
+            <div><div class="fi-name">frontend.prod.Dockerfile</div><div class="fi-desc">npm ci + vite build → nginx:alpine. VITE_API_BASE_URL figée au build.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col gap-m">
+        <div class="g2" style="gap:10px">
+          <div class="kpi"><div class="kpi-v" style="color:var(--purple-l)">Caddy</div><div class="kpi-l">HTTPS auto (Let's Encrypt)</div></div>
+          <div class="kpi"><div class="kpi-v" style="color:var(--green-l)">3</div><div class="kpi-l">Workers Gunicorn</div></div>
+        </div>
+        <div class="card card-green">
+          <h3 style="font-size:13px;color:var(--green-l);margin-bottom:6px">Sécurisation prod</h3>
+          <ul style="font-size:12px;color:var(--slate-400);list-style:none;padding:0;line-height:1.9">
+            <li><span class="ico-s" style="color:var(--green-l);display:inline-block;vertical-align:middle;margin-right:4px"><i data-lucide="shield-check"></i></span>UFW : seuls ports 22 / 80 / 443 ouverts</li>
+            <li><span class="ico-s" style="color:var(--green-l);display:inline-block;vertical-align:middle;margin-right:4px"><i data-lucide="key-round"></i></span>SSH par clé Ed25519 — root désactivé</li>
+            <li><span class="ico-s" style="color:var(--green-l);display:inline-block;vertical-align:middle;margin-right:4px"><i data-lucide="shield-check"></i></span>fail2ban · HSTS · CSRF_TRUSTED_ORIGINS</li>
+            <li><span class="ico-s" style="color:var(--green-l);display:inline-block;vertical-align:middle;margin-right:4px"><i data-lucide="database"></i></span>POSTGRES_PASSWORD fort (openssl rand)</li>
+            <li><span class="ico-s" style="color:var(--green-l);display:inline-block;vertical-align:middle;margin-right:4px"><i data-lucide="file-lock-2"></i></span>.env prod en chmod 600, jamais commité</li>
+          </ul>
+        </div>
+        <div class="card card-amber">
+          <h3 style="font-size:13px;color:var(--amber-l);margin-bottom:5px">LLM cloud en prod</h3>
+          <p style="font-size:12px;color:var(--slate-400)">VPS OVH sans GPU → <strong style="color:var(--white)">Groq free tier</strong> par défaut (llama-3.3-70b-versatile, ~2s). Ollama désactivé via profil Docker. WhiteNoise sert les statiques sans Nginx séparé.</p>
+        </div>
+      </div>
+    </div>
+  </div></div>
+
+
+<div class="slide bg-end" data-ch="Conclusion">
+  <div class="narrow col center gap-l">
+    <div class="tag tag-amber ico-s"><i data-lucide="flag"></i> Release 2 — 17h45</div>
+    <h1>EduTutor IA</h1>
+    <p class="sub" style="max-width:480px;text-align:center">Un étudiant. Un cours. 10 questions générées en local.<br>Zéro cloud. Zéro abonnement. Zéro donnée qui s'échappe.</p>
+    <div class="g4 w100" style="max-width:620px">
+      <div class="kpi" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.2)"><div class="kpi-v" style="color:white">76</div><div class="kpi-l" style="color:rgba(255,255,255,.6)">SP livrés</div></div>
+      <div class="kpi" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.2)"><div class="kpi-v" style="color:white">9</div><div class="kpi-l" style="color:rgba(255,255,255,.6)">Backends LLM</div></div>
+      <div class="kpi" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.2)"><div class="kpi-v" style="color:white">4</div><div class="kpi-l" style="color:rgba(255,255,255,.6)">Perturbations</div></div>
+      <div class="kpi" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.2)"><div class="kpi-v" style="color:white">4j</div><div class="kpi-l" style="color:rgba(255,255,255,.6)">Durée</div></div>
+    </div>
+    <div class="team">
+      <span class="pill me">Abdelhadi MOUMOU</span><span class="pill">Jason DAHMOUN</span>
+      <span class="pill">Julie SAINT MARTIN</span><span class="pill">Kephren BIBANG</span>
+      <span class="pill">Mathis PENAGOS</span><span class="pill">Stive GAMY</span><span class="pill">Karam DHIFI</span>
+    </div>
+    <p style="font-size:11px;color:rgba(255,255,255,.3)">Équipe 17 · APOCAL'IPSSI 2026 · 30/06 – 02/07</p>
+  </div></div>
+
+
+</div><!-- end deck -->
+
+<div class="nav" id="nav">
+  <button id="btnP" onclick="go(cur-1)">‹</button>
+  <div id="dots" style="display:flex;gap:5px;align-items:center"></div>
+  <span class="ctr" id="ctr">1 / 21</span>
+  <button id="btnN" onclick="go(cur+1)">›</button>
+</div>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+const total=slides.length;
+let cur=0;
+const prog=document.getElementById('progress');
+const ctr=document.getElementById('ctr');
+const chap=document.getElementById('chapter');
+const dotsEl=document.getElementById('dots');
+const btnP=document.getElementById('btnP');
+const btnN=document.getElementById('btnN');
+
+slides.forEach((_,i)=>{
+  const d=document.createElement('div');
+  d.className='dot';d.onclick=()=>go(i);dotsEl.appendChild(d);
+});
+
+function go(n){
+  n=Math.max(0,Math.min(total-1,n));
+  if(n===cur)return;
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add('prev');
+  setTimeout(()=>slides[cur].classList.remove('prev'),400);
+  cur=n;
+  slides[cur].classList.add('active');
+  prog.style.width=(cur/(total-1)*100)+'%';
+  ctr.textContent=(cur+1)+' / '+total;
+  chap.textContent=slides[cur].dataset.ch||'';
+  dotsEl.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===cur));
+  btnP.disabled=cur===0;btnN.disabled=cur===total-1;
+}
+
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight',' '].includes(e.key)){e.preventDefault();go(cur+1);}
+  if(e.key==='ArrowLeft'){e.preventDefault();go(cur-1);}
+  if(e.key==='Home'){e.preventDefault();go(0);}
+  if(e.key==='End'){e.preventDefault();go(total-1);}
+});
+
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx;
+  if(Math.abs(dx)>50)go(dx<0?cur+1:cur-1);
+},{passive:true});
+
+prog.style.width='0%';
+dotsEl.querySelectorAll('.dot')[0].classList.add('active');
+btnP.disabled=true;
+chap.textContent=slides[0].dataset.ch||'';
+lucide.createIcons();
+</script>
+</body>
+</html>
