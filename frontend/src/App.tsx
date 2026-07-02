@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { SiteConfigProvider } from '@/contexts/SiteConfigContext';
+import { I18nProvider } from '@/contexts/I18nContext';
 import Layout from '@/components/Layout';
 import RequireAuth from '@/components/RequireAuth';
 import RequireAdmin from '@/components/RequireAdmin';
@@ -25,6 +26,7 @@ import CookiesPage from '@/pages/legal/CookiesPage';
 
 export default function App() {
   return (
+    <I18nProvider>
     <ThemeProvider>
       <SiteConfigProvider>
         <AuthProvider>
@@ -109,5 +111,6 @@ export default function App() {
         </AuthProvider>
       </SiteConfigProvider>
     </ThemeProvider>
+    </I18nProvider>
   );
 }

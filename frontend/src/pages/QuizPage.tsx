@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getQuiz, submitAnswers, type Quiz, type AnswerResult } from '@/api/quizzes';
+import { useI18n } from '@/contexts/I18nContext';
 import { CheckCircle, XCircle, Send, History, BookOpen, Loader2 } from 'lucide-react';
 
 export default function QuizPage() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useI18n();
   const quizId = Number(id);
 
   const [quiz, setQuiz] = useState<Quiz | null>(null);
@@ -38,7 +40,7 @@ export default function QuizPage() {
           setAnswers(saved);
         }
       })
-      .catch(() => setError('Impossible de charger ce quiz.'))
+      .catch(() => setError(t('quiz_error_load')))
       .finally(() => setLoading(false));
   }, [quizId]);
 
@@ -59,7 +61,7 @@ export default function QuizPage() {
       setResult(res);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch {
-      setError('Échec de la soumission.');
+      setError(t('quiz_error_submit'));
     } finally {
       setSubmitting(false);
     }
@@ -67,7 +69,7 @@ export default function QuizPage() {
 
   if (loading) return (
     <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 py-10">
-      <Loader2 size={16} className="animate-spin" /> Chargement du quiz...
+      <Loader2 size={16} className="animate-spin" aria-hidden="true" /> {t('quiz_loading')}
     </div>
   );
   if (error) return <p className="text-red-600 dark:text-red-400">{error}</p>;
@@ -95,7 +97,7 @@ export default function QuizPage() {
         </div>
         {!result && (
           <div className="text-right shrink-0">
-            <div className="text-xs text-slate-400 dark:text-slate-500 mb-1">{answeredCount} / 10 répondues</div>
+            <div className="text-xs text-slate-400 dark:text-slate-500 mb-1">{answeredCount} / 10 {t('quiz_answered')}</div>
             <div className="w-32 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
               <div
                 className="h-full bg-blue-600 rounded-full transition-all duration-300"
@@ -108,33 +110,33 @@ export default function QuizPage() {
 
       {/* Résultat */}
       {result && (
-        <div className={`rounded-xl border p-5 ${scoreVariant.bg}`}>
+        <div role="alert" aria-live="polite" className={`rounded-xl border p-5 ${scoreVariant.bg}`}>
           <div className="flex items-center gap-4 flex-wrap">
-            <div className={`${scoreVariant.badge} text-white rounded-xl w-16 h-16 flex flex-col items-center justify-center shrink-0`}>
+            <div aria-hidden="true" className={`${scoreVariant.badge} text-white rounded-xl w-16 h-16 flex flex-col items-center justify-center shrink-0`}>
               <span className="text-2xl font-black leading-none">{result.score}</span>
               <span className="text-xs opacity-75">/10</span>
             </div>
             <div>
               <p className={`font-bold text-base ${scoreVariant.text}`}>
                 {result.score === 10
-                  ? 'Sans-faute ! Tu maîtrises ce chapitre.'
+                  ? t('quiz_score_perfect')
                   : result.score >= 7
-                    ? 'Bon résultat. Revois les questions ratées ci-dessous.'
+                    ? t('quiz_score_good')
                     : result.score >= 4
-                      ? "Des bases solides, mais des révisions s'imposent."
-                      : 'Il faut reprendre le cours en profondeur.'}
+                      ? t('quiz_score_medium')
+                      : t('quiz_score_low')}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {result.details.filter((d) => d.correct).length} bonne(s) réponse(s) sur {result.total}
+                {result.details.filter((d) => d.correct).length} {t('quiz_correct_count')} {result.total}
               </p>
             </div>
           </div>
           <div className="mt-4 flex gap-2">
             <Link to="/history" className="btn-secondary !text-xs !py-1.5 !px-3 gap-1.5">
-              <History size={13} /> Historique
+              <History size={13} aria-hidden="true" /> {t('quiz_history')}
             </Link>
             <Link to="/review" className="btn-secondary !text-xs !py-1.5 !px-3 gap-1.5">
-              <BookOpen size={13} /> Réviser mes erreurs
+              <BookOpen size={13} aria-hidden="true" /> {t('quiz_review')}
             </Link>
           </div>
         </div>
@@ -149,13 +151,17 @@ export default function QuizPage() {
         return (
           <div
             key={q.index}
+            role="group"
+            aria-labelledby={`question-label-${q.index}`}
             className={`card transition-all ${isAnswered && !result ? 'border-blue-200 dark:border-blue-800' : ''}`}
           >
             <div className="flex items-start gap-3 mb-4">
-              <span className="shrink-0 w-7 h-7 rounded-md bg-blue-600 flex items-center justify-center text-white text-xs font-bold mt-0.5">
+              <span aria-hidden="true" className="shrink-0 w-7 h-7 rounded-md bg-blue-600 flex items-center justify-center text-white text-xs font-bold mt-0.5">
                 {q.index}
               </span>
-              <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm leading-relaxed">{q.prompt}</p>
+              <p id={`question-label-${q.index}`} className="font-semibold text-slate-900 dark:text-slate-100 text-sm leading-relaxed">
+                {t('quiz_question_prefix')} {q.index} : {q.prompt}
+              </p>
             </div>
 
             <div className="space-y-2 ml-10">
@@ -166,14 +172,17 @@ export default function QuizPage() {
 
                 let cls = 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950 cursor-pointer';
                 let icon = null;
+                let ariaLabel = opt;
 
                 if (result) {
                   if (isCorrect) {
                     cls = 'border-emerald-400 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-300 cursor-default';
-                    icon = <CheckCircle size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />;
+                    icon = <CheckCircle size={15} aria-hidden="true" className="text-emerald-600 dark:text-emerald-400 shrink-0" />;
+                    ariaLabel = `${opt} — ${t('quiz_option_correct')}`;
                   } else if (isWrongPick) {
                     cls = 'border-red-400 dark:border-red-700 bg-red-50 dark:bg-red-950 text-red-900 dark:text-red-300 cursor-default';
-                    icon = <XCircle size={15} className="text-red-500 dark:text-red-400 shrink-0" />;
+                    icon = <XCircle size={15} aria-hidden="true" className="text-red-500 dark:text-red-400 shrink-0" />;
+                    ariaLabel = `${opt} — ${t('quiz_option_wrong')}`;
                   } else {
                     cls = 'border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600 opacity-50 cursor-default';
                   }
@@ -185,11 +194,14 @@ export default function QuizPage() {
                   <button
                     key={optIdx}
                     type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    aria-label={ariaLabel}
                     disabled={!!result}
                     onClick={() => handleSelect(q.index, optIdx)}
                     className={`w-full text-left flex items-center gap-3 px-3 py-2.5 border rounded-lg transition-all text-sm ${cls}`}
                   >
-                    <span className="shrink-0 w-6 h-6 rounded border border-current flex items-center justify-center text-xs font-bold opacity-60 font-mono">
+                    <span aria-hidden="true" className="shrink-0 w-6 h-6 rounded border border-current flex items-center justify-center text-xs font-bold opacity-60 font-mono">
                       {String.fromCharCode(65 + optIdx)}
                     </span>
                     <span className="flex-1">{opt}</span>
@@ -212,14 +224,14 @@ export default function QuizPage() {
           >
             {submitting ? (
               <>
-                <Loader2 size={18} className="animate-spin" /> Correction en cours...
+                <Loader2 size={18} className="animate-spin" aria-hidden="true" /> {t('quiz_submitting')}
               </>
             ) : allAnswered ? (
               <>
-                <Send size={18} /> Soumettre mes réponses
+                <Send size={18} aria-hidden="true" /> {t('quiz_submit')}
               </>
             ) : (
-              `Répondre à toutes les questions (${answeredCount}/10)`
+              `${t('quiz_answer_all')} (${answeredCount}/10)`
             )}
           </button>
         </div>

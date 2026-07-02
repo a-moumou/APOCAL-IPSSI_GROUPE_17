@@ -13,6 +13,18 @@
   code, pre {
     font-family: 'JetBrains Mono', monospace;
   }
+
+  /* RGAA — focus clavier visible pour tous les éléments interactifs */
+  :focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Supprime l'outline par défaut uniquement pour les clics souris */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
 }
 
 @layer components {

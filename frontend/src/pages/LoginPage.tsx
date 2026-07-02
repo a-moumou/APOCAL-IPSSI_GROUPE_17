@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { getApiErrorMessage } from '@/api/errors';
 import { BookOpen, AlertCircle, LogIn } from 'lucide-react';
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from ?? '/upload';
@@ -36,31 +38,33 @@ export default function LoginPage() {
           <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center mx-auto mb-5">
             <BookOpen size={22} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Connexion</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('login_title')}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Pas encore de compte ?{' '}
+            {t('login_no_account')}{' '}
             <Link to="/signup" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
-              S'inscrire
+              {t('login_signup_link')}
             </Link>
           </p>
         </div>
 
         <div className="card">
           {error && (
-            <div className="alert-error mb-4 flex items-start gap-2">
-              <AlertCircle size={16} className="shrink-0 mt-0.5" />
+            <div role="alert" aria-live="assertive" className="alert-error mb-4 flex items-start gap-2">
+              <AlertCircle size={16} className="shrink-0 mt-0.5" aria-hidden="true" />
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div>
-              <label className="label">Adresse email</label>
+              <label htmlFor="login-email" className="label">{t('login_email')}</label>
               <input
+                id="login-email"
                 type="email"
                 required
                 autoFocus
                 autoComplete="email"
+                aria-required="true"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="vous@exemple.com"
@@ -70,15 +74,17 @@ export default function LoginPage() {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="label !mb-0">Mot de passe</label>
+                <label htmlFor="login-password" className="label !mb-0">{t('login_password')}</label>
                 <Link to="/forgot-password" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
-                  Mot de passe oublié ?
+                  {t('login_forgot')}
                 </Link>
               </div>
               <input
+                id="login-password"
                 type="password"
                 required
                 autoComplete="current-password"
+                aria-required="true"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -90,11 +96,11 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Connexion...
+                  {t('login_loading')}
                 </>
               ) : (
                 <>
-                  <LogIn size={16} /> Se connecter
+                  <LogIn size={16} aria-hidden="true" /> {t('login_submit')}
                 </>
               )}
             </button>
@@ -102,10 +108,10 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-5">
-          En vous connectant, vous acceptez nos{' '}
-          <Link to="/legal/cgu" className="underline hover:text-slate-600">CGU</Link>
-          {' '}et notre{' '}
-          <Link to="/legal/confidentialite" className="underline hover:text-slate-600">politique de confidentialité</Link>.
+          {t('login_legal')}{' '}
+          <Link to="/legal/cgu" className="underline hover:text-slate-600">{t('login_cgu')}</Link>
+          {' '}{t('login_and')}{' '}
+          <Link to="/legal/confidentialite" className="underline hover:text-slate-600">{t('login_privacy')}</Link>.
         </p>
       </div>
     </div>
