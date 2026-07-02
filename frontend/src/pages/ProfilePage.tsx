@@ -1,30 +1,15 @@
-/**
- * Page "Mon profil".
- *
- * Trois zones :
- *   1. Mes informations  : modifier prénom / nom / email
- *   2. Mot de passe       : changer son mot de passe (ancien requis)
- *   3. Zone de danger     : supprimer définitivement son compte
- *
- * [Note pédagogique] Changer son email = re-valider (le bandeau « email non
- * confirmé » réapparaîtra). La suppression est une action DESTRUCTIVE : on la
- * protège par une confirmation au mot de passe.
- *
- * [TODO J3-bis RGPD] Ajouter ici un bouton « Exporter mes données » (droit à la
- *   portabilité) — placeholder présent plus bas, à implémenter pendant la semaine.
- * [TODO J4] Ajouter un bouton « Signaler un contenu / un quiz » — placeholder.
- */
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { changePassword, deleteAccount, updateProfile } from '@/api/auth';
 import { getApiErrorMessage } from '@/api/errors';
 
 export default function ProfilePage() {
   const { user, refresh } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
 
-  // --- Zone 1 : informations ---
   const [firstName, setFirstName] = useState(user?.first_name ?? '');
   const [lastName, setLastName] = useState(user?.last_name ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
@@ -32,7 +17,6 @@ export default function ProfilePage() {
   const [infoErr, setInfoErr] = useState<string | null>(null);
   const [infoLoading, setInfoLoading] = useState(false);
 
-  // --- Zone 2 : mot de passe ---
   const [oldPwd, setOldPwd] = useState('');
   const [newPwd, setNewPwd] = useState('');
   const [confirmPwd, setConfirmPwd] = useState('');
@@ -40,7 +24,6 @@ export default function ProfilePage() {
   const [pwdErr, setPwdErr] = useState<string | null>(null);
   const [pwdLoading, setPwdLoading] = useState(false);
 
-  // --- Zone 3 : suppression ---
   const [delPwd, setDelPwd] = useState('');
   const [delConfirm, setDelConfirm] = useState(false);
   const [delErr, setDelErr] = useState<string | null>(null);
@@ -54,7 +37,7 @@ export default function ProfilePage() {
     try {
       await updateProfile({ first_name: firstName, last_name: lastName, email });
       await refresh();
-      setInfoMsg('Profil mis à jour.');
+      setInfoMsg(t('profile_saved'));
     } catch (err) {
       setInfoErr(getApiErrorMessage(err, 'Mise à jour impossible.'));
     } finally {
@@ -67,7 +50,7 @@ export default function ProfilePage() {
     setPwdMsg(null);
     setPwdErr(null);
     if (newPwd !== confirmPwd) {
-      setPwdErr('Les deux nouveaux mots de passe ne correspondent pas.');
+      setPwdErr(t('profile_pwd_mismatch'));
       return;
     }
     setPwdLoading(true);
@@ -90,7 +73,7 @@ export default function ProfilePage() {
     setDelLoading(true);
     try {
       await deleteAccount(delPwd);
-      await refresh(); // token effacé -> l'utilisateur passe à null
+      await refresh();
       navigate('/', { replace: true });
     } catch (err) {
       setDelErr(getApiErrorMessage(err, 'Suppression impossible.'));
@@ -100,26 +83,27 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-slate-900">Mon profil</h1>
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('profile_title')}</h1>
 
       {/* Zone 1 : informations */}
       <section className="card">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Mes informations</h2>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">{t('profile_info_title')}</h2>
         {infoMsg && (
-          <div className="mb-4 p-3 bg-emerald-50 border-l-4 border-emerald-500 text-sm text-emerald-900 rounded">
+          <div role="status" className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950 border-l-4 border-emerald-500 text-sm text-emerald-900 dark:text-emerald-300 rounded">
             {infoMsg}
           </div>
         )}
         {infoErr && (
-          <div className="mb-4 p-3 bg-rose-50 border-l-4 border-rose-500 text-sm text-rose-900 rounded">
+          <div role="alert" className="mb-4 p-3 bg-rose-50 dark:bg-rose-950 border-l-4 border-rose-500 text-sm text-rose-900 dark:text-rose-300 rounded">
             {infoErr}
           </div>
         )}
-        <form onSubmit={handleInfo} className="space-y-4">
+        <form onSubmit={handleInfo} className="space-y-4" noValidate>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Prénom</label>
+              <label htmlFor="profile-firstname" className="label">{t('profile_firstname')}</label>
               <input
+                id="profile-firstname"
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -127,8 +111,9 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Nom</label>
+              <label htmlFor="profile-lastname" className="label">{t('profile_lastname')}</label>
               <input
+                id="profile-lastname"
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
@@ -137,47 +122,45 @@ export default function ProfilePage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Email{' '}
+            <label htmlFor="profile-email" className="label">
+              {t('profile_email')}{' '}
               {user && !user.email_verified && (
-                <span className="text-amber-600 font-normal">(non confirmé)</span>
+                <span className="text-amber-600 font-normal">{t('profile_email_unverified')}</span>
               )}
             </label>
             <input
+              id="profile-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input"
             />
-            <p className="text-xs text-slate-500 mt-1">
-              Changer d'email nécessitera une nouvelle confirmation par mail.
-            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('profile_email_hint')}</p>
           </div>
           <button type="submit" disabled={infoLoading} className="btn-primary">
-            {infoLoading ? 'Enregistrement…' : 'Enregistrer'}
+            {infoLoading ? t('profile_saving') : t('profile_save')}
           </button>
         </form>
       </section>
 
       {/* Zone 2 : mot de passe */}
       <section className="card">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Changer mon mot de passe</h2>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">{t('profile_pwd_title')}</h2>
         {pwdMsg && (
-          <div className="mb-4 p-3 bg-emerald-50 border-l-4 border-emerald-500 text-sm text-emerald-900 rounded">
+          <div role="status" className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950 border-l-4 border-emerald-500 text-sm text-emerald-900 dark:text-emerald-300 rounded">
             {pwdMsg}
           </div>
         )}
         {pwdErr && (
-          <div className="mb-4 p-3 bg-rose-50 border-l-4 border-rose-500 text-sm text-rose-900 rounded">
+          <div role="alert" className="mb-4 p-3 bg-rose-50 dark:bg-rose-950 border-l-4 border-rose-500 text-sm text-rose-900 dark:text-rose-300 rounded">
             {pwdErr}
           </div>
         )}
-        <form onSubmit={handlePassword} className="space-y-4">
+        <form onSubmit={handlePassword} className="space-y-4" noValidate>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Mot de passe actuel
-            </label>
+            <label htmlFor="pwd-current" className="label">{t('profile_pwd_current')}</label>
             <input
+              id="pwd-current"
               type="password"
               required
               autoComplete="current-password"
@@ -188,10 +171,9 @@ export default function ProfilePage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Nouveau mot de passe
-              </label>
+              <label htmlFor="pwd-new" className="label">{t('profile_pwd_new')}</label>
               <input
+                id="pwd-new"
                 type="password"
                 required
                 minLength={8}
@@ -202,8 +184,9 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Confirmer</label>
+              <label htmlFor="pwd-confirm" className="label">{t('profile_pwd_confirm')}</label>
               <input
+                id="pwd-confirm"
                 type="password"
                 required
                 minLength={8}
@@ -215,55 +198,41 @@ export default function ProfilePage() {
             </div>
           </div>
           <button type="submit" disabled={pwdLoading} className="btn-primary">
-            {pwdLoading ? 'Modification…' : 'Modifier le mot de passe'}
+            {pwdLoading ? t('profile_pwd_loading') : t('profile_pwd_submit')}
           </button>
         </form>
       </section>
 
-      {/* Placeholders RGPD / signalement (à compléter pendant la semaine) */}
-      <section className="card bg-slate-50">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">Mes données</h2>
-        <p className="text-sm text-slate-500 mb-4">
-          Fonctionnalités à construire pendant la semaine APOCAL'IPSSI.
-        </p>
+      {/* Placeholders RGPD */}
+      <section className="card bg-slate-50 dark:bg-slate-800/50">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">{t('profile_data_title')}</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{t('profile_data_desc')}</p>
         <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            disabled
-            title="À implémenter (J3-bis) — droit à la portabilité RGPD"
-            className="btn-secondary opacity-60 cursor-not-allowed"
-          >
-            Exporter mes données (bientôt)
+          <button type="button" disabled className="btn-secondary opacity-60 cursor-not-allowed">
+            {t('profile_export')}
           </button>
-          <button
-            type="button"
-            disabled
-            title="À implémenter (J4) — signalement de contenu"
-            className="btn-secondary opacity-60 cursor-not-allowed"
-          >
-            Signaler un contenu (bientôt)
+          <button type="button" disabled className="btn-secondary opacity-60 cursor-not-allowed">
+            {t('profile_report')}
           </button>
         </div>
       </section>
 
       {/* Zone 3 : danger */}
-      <section className="card border-2 border-rose-200">
-        <h2 className="text-lg font-semibold text-rose-700 mb-2">Zone de danger</h2>
-        <p className="text-sm text-slate-600 mb-4">
-          La suppression de votre compte est <strong>définitive</strong> et efface toutes vos
-          données (quiz, historique). Cette action est irréversible.
+      <section className="card border-2 border-rose-200 dark:border-rose-800">
+        <h2 className="text-lg font-semibold text-rose-700 dark:text-rose-400 mb-2">{t('profile_danger_title')}</h2>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+          {t('profile_danger_desc').replace('<strong>', '').replace('</strong>', '')}
         </p>
         {delErr && (
-          <div className="mb-4 p-3 bg-rose-50 border-l-4 border-rose-500 text-sm text-rose-900 rounded">
+          <div role="alert" className="mb-4 p-3 bg-rose-50 dark:bg-rose-950 border-l-4 border-rose-500 text-sm text-rose-900 dark:text-rose-300 rounded">
             {delErr}
           </div>
         )}
-        <form onSubmit={handleDelete} className="space-y-4">
+        <form onSubmit={handleDelete} className="space-y-4" noValidate>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Confirmez avec votre mot de passe
-            </label>
+            <label htmlFor="del-pwd" className="label">{t('profile_danger_pwd')}</label>
             <input
+              id="del-pwd"
               type="password"
               required
               autoComplete="current-password"
@@ -272,20 +241,21 @@ export default function ProfilePage() {
               className="input"
             />
           </div>
-          <label className="flex items-center gap-2 text-sm text-slate-700">
+          <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
             <input
               type="checkbox"
               checked={delConfirm}
               onChange={(e) => setDelConfirm(e.target.checked)}
+              className="w-4 h-4"
             />
-            Je comprends que cette action est irréversible.
+            {t('profile_danger_check')}
           </label>
           <button
             type="submit"
             disabled={delLoading || !delConfirm}
-            className="px-4 py-2 rounded bg-rose-600 text-white font-medium hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-danger"
           >
-            {delLoading ? 'Suppression…' : 'Supprimer définitivement mon compte'}
+            {delLoading ? t('profile_danger_loading') : t('profile_danger_submit')}
           </button>
         </form>
       </section>

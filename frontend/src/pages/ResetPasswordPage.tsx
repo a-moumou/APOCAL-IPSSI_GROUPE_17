@@ -1,17 +1,11 @@
-/**
- * Page de réinitialisation du mot de passe.
- *
- * L'utilisateur arrive ici via le lien reçu par email :
- *   /reset-password?uid=...&token=...
- * On lit uid + token dans l'URL, on demande le nouveau mot de passe, puis on
- * appelle le backend qui valide le token (mécanisme standard Django).
- */
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { confirmPasswordReset } from '@/api/auth';
+import { useI18n } from '@/contexts/I18nContext';
 import { getApiErrorMessage } from '@/api/errors';
 
 export default function ResetPasswordPage() {
+  const { t } = useI18n();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const uid = params.get('uid') ?? '';
@@ -29,14 +23,13 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setError(null);
     if (password !== confirm) {
-      setError('Les deux mots de passe ne correspondent pas.');
+      setError(t('reset_mismatch'));
       return;
     }
     setLoading(true);
     try {
       const detail = await confirmPasswordReset(uid, token, password);
       setMessage(detail);
-      // Redirige vers la connexion après un court instant.
       setTimeout(() => navigate('/login', { replace: true }), 2000);
     } catch (err) {
       setError(getApiErrorMessage(err, 'Réinitialisation impossible.'));
@@ -48,43 +41,40 @@ export default function ResetPasswordPage() {
   return (
     <div className="max-w-md mx-auto">
       <div className="card">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Nouveau mot de passe</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">{t('reset_title')}</h1>
 
         {linkInvalid ? (
-          <div className="mb-4 p-3 bg-rose-50 border-l-4 border-rose-500 text-sm text-rose-900 rounded">
-            Lien incomplet ou invalide. Refaites une demande depuis{' '}
-            <Link to="/forgot-password" className="text-indigo-600 hover:underline">
-              « mot de passe oublié »
-            </Link>
-            .
+          <div role="alert" className="mb-4 p-3 bg-rose-50 dark:bg-rose-950 border-l-4 border-rose-500 text-sm text-rose-900 dark:text-rose-300 rounded">
+            {t('reset_invalid')}{' '}
+            <Link to="/forgot-password" className="text-blue-600 dark:text-blue-400 hover:underline">
+              {t('reset_invalid_link')}
+            </Link>.
           </div>
         ) : message ? (
-          <div className="mb-4 p-3 bg-emerald-50 border-l-4 border-emerald-500 text-sm text-emerald-900 rounded">
-            {message} Redirection vers la connexion…
+          <div role="status" className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950 border-l-4 border-emerald-500 text-sm text-emerald-900 dark:text-emerald-300 rounded">
+            {message} {t('reset_redirect')}
           </div>
         ) : (
           <>
-            <p className="text-sm text-slate-500 mb-6">
-              Choisissez un nouveau mot de passe (au moins 8 caractères).
-            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{t('reset_desc')}</p>
 
             {error && (
-              <div className="mb-4 p-3 bg-rose-50 border-l-4 border-rose-500 text-sm text-rose-900 rounded">
+              <div role="alert" className="mb-4 p-3 bg-rose-50 dark:bg-rose-950 border-l-4 border-rose-500 text-sm text-rose-900 dark:text-rose-300 rounded">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Nouveau mot de passe
-                </label>
+                <label htmlFor="reset-pwd" className="label">{t('reset_new_pwd')}</label>
                 <input
+                  id="reset-pwd"
                   type="password"
                   required
                   minLength={8}
                   autoFocus
                   autoComplete="new-password"
+                  aria-required="true"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="input"
@@ -92,14 +82,14 @@ export default function ResetPasswordPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Confirmer le mot de passe
-                </label>
+                <label htmlFor="reset-confirm" className="label">{t('reset_confirm_pwd')}</label>
                 <input
+                  id="reset-confirm"
                   type="password"
                   required
                   minLength={8}
                   autoComplete="new-password"
+                  aria-required="true"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   className="input"
@@ -107,7 +97,7 @@ export default function ResetPasswordPage() {
               </div>
 
               <button type="submit" disabled={loading} className="btn-primary w-full">
-                {loading ? 'Enregistrement…' : 'Réinitialiser mon mot de passe'}
+                {loading ? t('reset_loading') : t('reset_submit')}
               </button>
             </form>
           </>

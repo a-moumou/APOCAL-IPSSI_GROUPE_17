@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signup } from '@/api/auth';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSiteConfig } from '@/contexts/SiteConfigContext';
+import { useI18n } from '@/contexts/I18nContext';
 import { getApiErrorMessage } from '@/api/errors';
 import { BookOpen, AlertCircle, UserPlus, Lock } from 'lucide-react';
 
 export default function SignupPage() {
   const { refresh } = useAuth();
   const { config } = useSiteConfig();
+  const { t } = useI18n();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -37,14 +39,12 @@ export default function SignupPage() {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <div className="card text-center max-w-sm w-full">
-          <div className="w-12 h-12 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center mx-auto mb-4">
+          <div className="w-12 h-12 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center mx-auto mb-4" aria-hidden="true">
             <Lock size={22} className="text-slate-500 dark:text-slate-400" />
           </div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Inscriptions fermées</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">
-            Les inscriptions sont actuellement désactivées. Revenez plus tard.
-          </p>
-          <Link to="/login" className="btn-primary w-full">Déjà un compte ? Se connecter</Link>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">{t('signup_closed_title')}</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">{t('signup_closed_desc')}</p>
+          <Link to="/login" className="btn-primary w-full">{t('signup_closed_login')}</Link>
         </div>
       </div>
     );
@@ -54,34 +54,36 @@ export default function SignupPage() {
     <div className="min-h-[70vh] flex items-center justify-center py-8">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center mx-auto mb-5">
+          <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center mx-auto mb-5" aria-hidden="true">
             <BookOpen size={22} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Créer un compte</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('signup_title')}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Déjà inscrit ?{' '}
+            {t('signup_have_account')}{' '}
             <Link to="/login" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
-              Se connecter
+              {t('signup_login_link')}
             </Link>
           </p>
         </div>
 
         <div className="card">
           {error && (
-            <div className="alert-error mb-4 flex items-start gap-2">
-              <AlertCircle size={16} className="shrink-0 mt-0.5" />
+            <div role="alert" aria-live="assertive" className="alert-error mb-4 flex items-start gap-2">
+              <AlertCircle size={16} aria-hidden="true" className="shrink-0 mt-0.5" />
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div>
-              <label className="label">Adresse email</label>
+              <label htmlFor="signup-email" className="label">{t('signup_email')}</label>
               <input
+                id="signup-email"
                 type="email"
                 required
                 autoFocus
                 autoComplete="email"
+                aria-required="true"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="vous@exemple.com"
@@ -91,25 +93,33 @@ export default function SignupPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="label">Prénom <span className="text-slate-400 font-normal">(optionnel)</span></label>
-                <input type="text" autoComplete="given-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Léa" className="input" />
+                <label htmlFor="signup-firstname" className="label">
+                  {t('signup_firstname')} <span className="text-slate-400 font-normal">{t('signup_optional')}</span>
+                </label>
+                <input id="signup-firstname" type="text" autoComplete="given-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Léa" className="input" />
               </div>
               <div>
-                <label className="label">Nom <span className="text-slate-400 font-normal">(optionnel)</span></label>
-                <input type="text" autoComplete="family-name" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Martin" className="input" />
+                <label htmlFor="signup-lastname" className="label">
+                  {t('signup_lastname')} <span className="text-slate-400 font-normal">{t('signup_optional')}</span>
+                </label>
+                <input id="signup-lastname" type="text" autoComplete="family-name" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Martin" className="input" />
               </div>
             </div>
 
             <div>
-              <label className="label">Mot de passe <span className="text-slate-400 font-normal">(8 min.)</span></label>
+              <label htmlFor="signup-password" className="label">
+                {t('signup_password')} <span className="text-slate-400 font-normal">{t('signup_pwd_hint')}</span>
+              </label>
               <input
+                id="signup-password"
                 type="password"
                 required
                 minLength={8}
                 autoComplete="new-password"
+                aria-required="true"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder={t('signup_pwd_placeholder')}
                 className="input"
               />
             </div>
@@ -117,12 +127,12 @@ export default function SignupPage() {
             <button type="submit" disabled={loading} className="btn-primary w-full mt-2 gap-2">
               {loading ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Création du compte...
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true" />
+                  {t('signup_loading')}
                 </>
               ) : (
                 <>
-                  <UserPlus size={16} /> Créer mon compte
+                  <UserPlus size={16} aria-hidden="true" /> {t('signup_submit')}
                 </>
               )}
             </button>
@@ -130,10 +140,10 @@ export default function SignupPage() {
         </div>
 
         <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-5">
-          En vous inscrivant, vous acceptez nos{' '}
-          <Link to="/legal/cgu" className="underline hover:text-slate-600">CGU</Link>
-          {' '}et notre{' '}
-          <Link to="/legal/confidentialite" className="underline hover:text-slate-600">politique de confidentialité</Link>.
+          {t('signup_legal')}{' '}
+          <Link to="/legal/cgu" className="underline hover:text-slate-600">{t('login_cgu')}</Link>
+          {' '}{t('login_and')}{' '}
+          <Link to="/legal/confidentialite" className="underline hover:text-slate-600">{t('login_privacy')}</Link>.
         </p>
       </div>
     </div>
