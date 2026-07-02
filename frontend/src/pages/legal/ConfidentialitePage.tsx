@@ -30,7 +30,7 @@ const SECTIONS: LegalSection[] = [
   {
     title: 'Destinataires des données',
     hint: 'qui y a accès (équipe, sous-traitants, fournisseurs LLM…).',
-    body: "Membres de l'Équipe 17 uniquement (usage pédagogique). Le traitement LLM est 100 % local (Ollama phi3:mini) : aucun texte de cours ne quitte le serveur. Aucune donnée vendue ni transmise à des tiers.",
+    body: "Membres de l'Équipe 17 uniquement (usage pédagogique). Le traitement LLM est 100 % local (Ollama llama3.2:3b) : aucun texte de cours ne quitte le serveur. Aucune donnée vendue ni transmise à des tiers.",
   },
   {
     title: 'Transferts hors UE',

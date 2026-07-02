@@ -17,7 +17,7 @@
 - Les textes uploadés sont utilisés **uniquement au moment de la génération du quiz**.
 - Ils sont persistés en base dans le champ `source_text` du modèle `Quiz` pour permettre à l'utilisateur de consulter l'historique.
 - Supprimés avec le quiz (cascade) ou lors de la suppression du compte.
-- **Aucun transfert hors UE** : le traitement LLM est 100 % local (Ollama phi3:mini).
+- **Aucun transfert hors UE** : le traitement LLM est 100 % local (Ollama llama3.2:3b).
 
 ### Quiz et questions générés
 - Conservés indéfiniment tant que le compte est actif (nécessaires pour l'historique F6).
@@ -48,7 +48,7 @@
 
 **Isolation par utilisateur** : toutes les requêtes base de données sont filtrées par `user=request.user`. Un utilisateur ne peut jamais accéder aux données d'un autre (vérifié dans les vues et serializers Django).
 
-**Local-first** : le modèle LLM (Ollama phi3:mini) s'exécute sur le serveur local. Aucun texte de cours n'est envoyé à une API cloud (Gemini, Groq, OpenAI désactivés en production — cf. ADR-001).
+**Local-first** : le modèle LLM (Ollama llama3.2:3b) s'exécute sur le serveur local. Aucun texte de cours n'est envoyé à une API cloud (Gemini, Groq, OpenAI désactivés en production — cf. ADR-001).
 
 **Suppression en cascade** : la suppression du compte Django déclenche la suppression en cascade de tous les `Quiz` et `Question` associés via `on_delete=models.CASCADE`.
 
